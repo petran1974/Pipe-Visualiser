@@ -1,0 +1,412 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540782249485336,
+            55.47978028110476,
+            88.56
+          ],
+          [
+            -4.5407692989150545,
+            55.47969075671774,
+            87.71
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 0,
+        "Criticality": "Red"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.5407692989150545,
+            55.47969075671774,
+            87.71
+          ],
+          [
+            -4.540756348409673,
+            55.479601232327575,
+            87.21
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 1,
+        "Criticality": "Amber"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540756348409673,
+            55.479601232327575,
+            87.21
+          ],
+          [
+            -4.54074339796918,
+            55.479511707934265,
+            85.72
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 2,
+        "Criticality": "Amber"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.54074339796918,
+            55.479511707934265,
+            85.72
+          ],
+          [
+            -4.54073044759359,
+            55.47942218353786,
+            82.04
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 3,
+        "Criticality": "Green"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.54073044759359,
+            55.47942218353786,
+            82.04
+          ],
+          [
+            -4.540717497282892,
+            55.47933265913828,
+            77.51
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 4,
+        "Criticality": "Green"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540717497282892,
+            55.47933265913828,
+            77.51
+          ],
+          [
+            -4.540709484065252,
+            55.47927726421811,
+            75.11
+          ],
+          [
+            -4.540705737889206,
+            55.4792430859087,
+            74.91
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 5,
+        "Criticality": "Green"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540705737889206,
+            55.4792430859087,
+            74.91
+          ],
+          [
+            -4.5406959114003875,
+            55.47915343342652,
+            75
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 6,
+        "Criticality": "Red"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.5406959114003875,
+            55.47915343342652,
+            75
+          ],
+          [
+            -4.540686084962394,
+            55.47906378094193,
+            75
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 7,
+        "Criticality": "Amber"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540686084962394,
+            55.47906378094193,
+            75
+          ],
+          [
+            -4.540676258575218,
+            55.47897412845495,
+            75
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 8,
+        "Criticality": "Green"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540676258575218,
+            55.47897412845495,
+            75
+          ],
+          [
+            -4.540670676727634,
+            55.47892732449514,
+            75
+          ],
+          [
+            -4.5406735818932775,
+            55.47888445443361,
+            75
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 9,
+        "Criticality": "Green",
+        "survey": "https://drive.google.com/file/d/1iY7HtZVdWbep3_JWxAh9oeSaDJIgCsGL/view?usp=drive_link"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.5406735818932775,
+            55.47888445443361,
+            75
+          ],
+          [
+            -4.540681733553183,
+            55.478794747800045,
+            75
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 10,
+        "Criticality": "Green"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540681733553183,
+            55.478794747800045,
+            75
+          ],
+          [
+            -4.540689885182227,
+            55.47870504116509,
+            75
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 11,
+        "Criticality": "Red"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540689885182227,
+            55.47870504116509,
+            75
+          ],
+          [
+            -4.540695526643313,
+            55.4786434665288,
+            75
+          ],
+          [
+            -4.540695477568174,
+            55.47863821459751,
+            75
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 12,
+        "Criticality": "Green"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540695446363808,
+            55.47863802920349,
+            75
+          ],
+          [
+            -4.540696892878208,
+            55.478525505001286,
+            74.66
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 13,
+        "Criticality": "Amber"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540696892878208,
+            55.478525505001286,
+            74.66
+          ],
+          [
+            -4.540696099635489,
+            55.47843568010824,
+            79.26
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 14,
+        "Criticality": "Amber"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540696099635489,
+            55.47843568010824,
+            79.26
+          ],
+          [
+            -4.540695306402606,
+            55.478345855213995,
+            82.68
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 15,
+        "Criticality": "Amber"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -4.540695306402606,
+            55.478345855213995,
+            82.68
+          ],
+          [
+            -4.540695095897329,
+            55.47832201762086,
+            83.53
+          ]
+        ]
+      },
+      "properties": {
+        "fid": 1,
+        "order": 16,
+        "Criticality": "Green"
+      }
+    }
+  ]
+}

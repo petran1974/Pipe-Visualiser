@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D Pipe, Point Cloud & GeoTIFF Visualizer - Complete Suite</title>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  
+  <!-- Chart.js & Plugins CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+  <style>
+    html, body {
+      width: 100%; 
+      height: 100%; 
+      margin: 0; 
+      padding: 0; 
+      overflow: hidden; 
+      background: #000;
+      font-family: Arial, sans-serif;
+    }
+
+    #cesiumContainer {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    /* Left Control Dashboard */
+    #xrayPanel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(20, 20, 20, 0.92);
+      color: #ffffff;
+      padding: 15px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.2);
+      width: 230px;
+      max-height: calc(100vh - 270px);
+      overflow-y: auto;
+    }
+    #xrayPanel h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #00D2FF;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 5px;
+    }
+    .panel-section {
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed rgba(255,255,255,0.15);
+    }
+    .panel-section h4 {
+      margin: 0 0 6px 0;
+      font-size: 12px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-tool {
+      background: #008CBA;
+      border: none;
+      color: white;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+      margin-bottom: 6px;
+    }
+    .btn-tool:hover { background: #007399; }
+    .btn-tool.active { background: #e74c3c; }
+    .btn-secondary { background: #4a5568; }
+    .btn-secondary:hover { background: #2d3748; }
+    .btn-green { background: #27ae60; }
+    .btn-green:hover { background: #1e8449; }
+    .btn-warn { background: #d35400; }
+    .btn-warn:hover { background: #a04000; }
+    
+    .slider-container { margin-top: 6px; margin-bottom: 6px; }
+    .slider-container label { display: block; font-size: 11px; color: #aaa; margin-bottom: 4px; }
+
+    /* Right Attribute & Inspection Panel */
+    #infoPanel {
+      display: none;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(20, 20, 20, 0.92);
+      color: #ffffff;
+      padding: 15px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      min-width: 270px;
+      max-width: 360px;
+      max-height: calc(100vh - 270px);
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.2);
+      word-wrap: break-word;
+    }
+    #infoPanel h3 {
+      margin: 0 0 10px 0;
+      font-size: 15px;
+      color: #4CAF50;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 6px;
+    }
+    #infoPanel table { width: 100%; border-collapse: collapse; }
+    #infoPanel td { padding: 4px 0; vertical-align: top; }
+    #infoPanel td.label-col { color: #bbb; font-weight: bold; padding-right: 12px; width: 35%; }
+
+    .vertex-editor-box {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255,255,255,0.2);
+    }
+    .vertex-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .vertex-row span { font-size: 12px; color: #00D2FF; font-weight: bold; }
+    .vertex-input {
+      width: 90px;
+      background: #111;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      text-align: right;
+    }
+
+    /* Bottom-Right Scrollable & Selectable Pipe Inventory Table */
+    #tablePanel {
+      position: absolute;
+      bottom: 245px;
+      right: 20px;
+      background: rgba(20, 20, 20, 0.94);
+      color: #ffffff;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      z-index: 1000;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.2);
+      width: 440px;
+      max-height: 180px;
+      display: flex;
+      flex-direction: column;
+    }
+    #tablePanel h4 {
+      margin: 0 0 6px 0;
+      color: #00D2FF;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      padding-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .table-scroll-container {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: 4px;
+      background: #111;
+    }
+    #pipeDataTable {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 11px;
+    }
+    #pipeDataTable th {
+      position: sticky;
+      top: 0;
+      background: #1c1c1c;
+      color: #00D2FF;
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      white-space: nowrap;
+      font-weight: bold;
+    }
+    #pipeDataTable td {
+      padding: 5px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      white-space: nowrap;
+    }
+    #pipeDataTable tbody tr {
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    #pipeDataTable tbody tr:hover {
+      background: rgba(0, 210, 255, 0.2) !important;
+    }
+    #pipeDataTable tbody tr.selected-row {
+      background: #008CBA !important;
+      color: #ffffff !important;
+      font-weight: bold;
+    }
+    .badge-crit {
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: bold;
+      color: #fff;
+      display: inline-block;
+      text-align: center;
+    }
+    .badge-red { background: #e74c3c; }
+    .badge-amber { background: #f39c12; }
+    .badge-green { background: #27ae60; }
+
+    /* Screen Slicer / Draggable Divider Bar */
+    #resizer {
+      position: absolute;
+      bottom: 230px;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: #00D2FF;
+      cursor: ns-resize;
+      z-index: 1001;
+      box-shadow: 0 0 8px rgba(0, 210, 255, 0.8);
+      transition: background 0.2s;
+    }
+    #resizer:hover, #resizer.dragging {
+      background: #33e0ff;
+      height: 10px;
+    }
+
+    /* Bottom Elevation Profile Drawer */
+    #profileDrawer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 230px;
+      background: rgba(12, 12, 12, 0.98);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      padding: 6px 20px 10px 20px;
+      box-sizing: border-box;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
+    }
+    #profileHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    #profileHeader h4 {
+      margin: 0;
+      color: #00D2FF;
+      font-size: 13px;
+    }
+    #resetZoomBtn {
+      background: #333;
+      color: #fff;
+      border: 1px solid #666;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    #resetZoomBtn:hover { background: #555; }
+    #profileCanvasContainer {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* PDF Viewer Embedded Modal */
+    #pdfModal {
+      display: none;
+      position: fixed;
+      top: 5%;
+      left: 10%;
+      width: 80%;
+      height: 85%;
+      background: rgba(20, 20, 20, 0.98);
+      border: 2px solid #00D2FF;
+      border-radius: 8px;
+      z-index: 2000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #pdfModalHeader {
+      padding: 8px 15px;
+      background: #111111;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #pdfModalTitle {
+      color: #00D2FF;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .pdf-ctrl-btn {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    .pdf-ctrl-btn:hover { background: #555; }
+    .pdf-ctrl-close { background: #e74c3c; border-color: #c0392b; }
+    .pdf-ctrl-close:hover { background: #c0392b; }
+    #pdfFrameContainer {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: #2a2a2a;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    #pdfIframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      transform-origin: top center;
+      transition: transform 0.15s ease-out;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cesiumContainer"></div>
+
+  <!-- Left Control Dashboard -->
+  <div id="xrayPanel">
+    <h3>Spatial Analysis Suite</h3>
+    
+    <div class="panel-section">
+      <h4>Subsurface / X-Ray</h4>
+      <button id="toggleXrayBtn" class="btn-tool">Enable Terrain Hillshade Mode</button>
+      <button id="toggleBaseMapBtn" class="btn-tool btn-secondary">Hide Base Satellite Map</button>
+      <button id="toggleTiffBtn" class="btn-tool btn-secondary">Hide GeoTIFF (5118488)</button>
+      <div class="slider-container">
+        <label for="opacitySlider">Point Cloud Overlay Opacity:</label>
+        <input type="range" id="opacitySlider" min="0.0" max="1.0" step="0.05" value="0.0" style="width: 100%;">
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h4>3D Cross-Section Cut</h4>
+      <button id="toggleClipBtn" class="btn-tool">Enable 3D Slice</button>
+      <div class="slider-container">
+        <label for="clipSlider">Slice Position:</label>
+        <input type="range" id="clipSlider" min="-100" max="100" step="1" value="0" disabled style="width: 100%;">
+      </div>
+      
+      <!-- Layer Controls for 3D Slicer Mode -->
+      <button id="toggleXrayBtn2" class="btn-tool">Enable Terrain Hillshade Mode</button>
+      <button id="toggleBaseMapBtn2" class="btn-tool btn-secondary">Hide Base Satellite Map</button>
+      <button id="toggleTiffBtn2" class="btn-tool btn-secondary">Hide GeoTIFF (5118488)</button>
+      <div class="slider-container">
+        <label for="opacitySlider2">Point Cloud Overlay Opacity:</label>
+        <input type="range" id="opacitySlider2" min="0.0" max="1.0" step="0.05" value="0.0" style="width: 100%;">
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h4>Measurement & Flythrough</h4>
+      <button id="toggleMeasureBtn" class="btn-tool">📏 3D Distance Measure</button>
+      <button id="clearMeasureBtn" class="btn-tool btn-secondary">Clear Measurements</button>
+      <button id="flyThroughBtn" class="btn-tool btn-secondary">🎬 Fly-Through Corridor</button>
+    </div>
+
+    <div class="panel-section">
+      <h4>Data Export & Reset</h4>
+      <button id="exportGeoJsonBtn" class="btn-tool btn-green">💾 Save & Export GeoJSON</button>
+      <button id="clearStorageBtn" class="btn-tool btn-warn">↺ Reset Saved Heights</button>
+      <button id="resetViewBtn" class="btn-tool btn-secondary">↺ Reset Camera View</button>
+    </div>
+  </div>
+
+  <!-- Right Attribute & Inspection Panel -->
+  <div id="infoPanel">
+    <h3>Pipe Attributes & Heights</h3>
+    <div id="infoContent">Select a pipe segment to view attributes.</div>
+  </div>
+
+  <!-- Bottom-Right Pipe Inventory Table -->
+  <div id="tablePanel">
+    <h4>📋 Pipe Inventory Directory <span id="tablePipeCount" style="font-size: 10px; color: #888;"></span></h4>
+    <div class="table-scroll-container">
+      <table id="pipeDataTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Criticality</th>
+            <th>Length</th>
+            <th>Diameter</th>
+            <th>Avg Depth</th>
+            <th>Survey Link</th>
+          </tr>
+        </thead>
+        <tbody id="pipeTableBody">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Screen Slicer Handle -->
+  <div id="resizer"></div>
+
+  <!-- Bottom Longitudinal Profile Drawer -->
+  <div id="profileDrawer">
+    <div id="profileHeader">
+      <h4>Longitudinal Profile (DTM Ground Surface & Pipe Invert | Drag Vertices to Edit)</h4>
+      <button id="resetZoomBtn">↺ Reset Chart Zoom</button>
+    </div>
+    <div id="profileCanvasContainer">
+      <canvas id="profileChart"></canvas>
+    </div>
+  </div>
+
+  <!-- In-Site Embedded PDF Viewer Modal -->
+  <div id="pdfModal">
+    <div id="pdfModalHeader">
+      <span id="pdfModalTitle">📄 Embedded Survey & Inspection PDF Viewer</span>
+      <div>
+        <button class="pdf-ctrl-btn" onclick="zoomPdf(0.15)">🔍 Zoom In</button>
+        <button class="pdf-ctrl-btn" onclick="zoomPdf(-0.15)">🔍 Zoom Out</button>
+        <button class="pdf-ctrl-btn" onclick="resetPdfZoom()">↺ 100%</button>
+        <button class="pdf-ctrl-btn pdf-ctrl-close" onclick="closePdfModal()">✕ Close</button>
+      </div>
+    </div>
+    <div id="pdfFrameContainer">
+      <iframe id="pdfIframe" src=""></iframe>
+    </div>
+  </div>
+
+  <script>
+    if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
+      try { Chart.register(ChartDataLabels); } catch(e) { console.warn(e); }
+    }
+
+    let currentlySelectedEntity = null;
+    let selectedPipeIndex = -1;
+    let createdPipeEntities = [];
+    let pipeDataGlobal = [];
+    let profileChartInstance = null;
+    let viewerInstance = null;
+    let terrainProviderInstance = null;
+    let tiffLayer = null;
+    let pointCloudTileset = null;
+    let NORMAL_STYLE = null;
+    let labelFlashInterval = null;
+    let chartFlashState = false; 
+    let pdfScaleLevel = 1.0;
+
+    // Layer display global states
+    let isXrayActive = false;
+    let isBaseMapHidden = false;
+    let isTiffHidden = false;
+    let pointCloudAlpha = 0.0;
+
+    const nodeRegistry = new Map();
+
+    function openPdfViewer(url) {
+      let embedUrl = url;
+      if (url.includes('drive.google.com')) {
+        embedUrl = url.replace(/\/view(\?.*)?$/, '/preview');
+      }
+      const iframe = document.getElementById('pdfIframe');
+      iframe.src = embedUrl;
+      resetPdfZoom();
+      document.getElementById('pdfModal').style.display = 'flex';
+    }
+
+    function closePdfModal() {
+      document.getElementById('pdfModal').style.display = 'none';
+      document.getElementById('pdfIframe').src = '';
+    }
+
+    function zoomPdf(delta) {
+      pdfScaleLevel = Math.min(Math.max(0.5, pdfScaleLevel + delta), 2.5);
+      const iframe = document.getElementById('pdfIframe');
+      iframe.style.transform = `scale(${pdfScaleLevel})`;
+      if (pdfScaleLevel > 1.0) {
+        iframe.style.width = `${100 / pdfScaleLevel}%`;
+        iframe.style.height = `${100 / pdfScaleLevel}%`;
+      } else {
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+      }
+    }
+
+    function resetPdfZoom() {
+      pdfScaleLevel = 1.0;
+      const iframe = document.getElementById('pdfIframe');
+      iframe.style.transform = 'scale(1)';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+    }
+
+    function calculatePolylineMidpoint(positions) {
+      if (!positions || positions.length === 0) return undefined;
+      if (positions.length === 1) return positions[0];
+      if (positions.length === 2) {
+        return Cesium.Cartesian3.midpoint(positions[0], positions[1], new Cesium.Cartesian3());
+      }
+      
+      let totalLength = 0;
+      const segmentLengths = [];
+      for (let i = 0; i < positions.length - 1; i++) {
+        const len = Cesium.Cartesian3.distance(positions[i], positions[i+1]);
+        segmentLengths.push(len);
+        totalLength += len;
+      }
+
+      const halfLength = totalLength / 2.0;
+      let accumulated = 0;
+      for (let i = 0; i < segmentLengths.length; i++) {
+        if (accumulated + segmentLengths[i] >= halfLength) {
+          const remainder = halfLength - accumulated;
+          const ratio = remainder / segmentLengths[i];
+          return Cesium.Cartesian3.lerp(positions[i], positions[i+1], ratio, new Cesium.Cartesian3());
+        }
+        accumulated += segmentLengths[i];
+      }
+      return positions[Math.floor(positions.length / 2)];
+    }
+
+    function buildSpatialNodeRegistry() {
+      nodeRegistry.clear();
+      createdPipeEntities.forEach((entity, pipeIdx) => {
+        entity.cartoPositions.forEach((carto, vIdx) => {
+          const nodeKey = `${carto.longitude.toFixed(7)}_${carto.latitude.toFixed(7)}`;
+          if (!nodeRegistry.has(nodeKey)) {
+            nodeRegistry.set(nodeKey, []);
+          }
+          nodeRegistry.get(nodeKey).push({ pipeIndex: pipeIdx, vertexIndex: vIdx });
+        });
+      });
+    }
+
+    // CENTRALIZED SELECTION HANDLER
+    function selectPipe(pipeIndex, sourceTrigger = '') {
+      if (pipeIndex === undefined || pipeIndex < 0 || pipeIndex >= createdPipeEntities.length) return;
+      selectedPipeIndex = pipeIndex;
+
+      const targetEntity = createdPipeEntities[pipeIndex];
+
+      if (viewerInstance) {
+        viewerInstance.selectedEntity = undefined;
+      }
+
+      // 1. HIGHLIGHT & CENTER TABLE ROW
+      const tableBody = document.getElementById('pipeTableBody');
+      const rows = tableBody.querySelectorAll('tr');
+      rows.forEach((row, idx) => {
+        if (idx === pipeIndex) {
+          row.classList.add('selected-row');
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          row.classList.remove('selected-row');
+        }
+      });
+
+      // 2. CLEAR PREVIOUS FLASH INTERVAL & RESET ALL LABELS AND MATERIALS
+      if (labelFlashInterval) {
+        clearInterval(labelFlashInterval);
+        labelFlashInterval = null;
+      }
+      chartFlashState = false;
+
+      createdPipeEntities.forEach((entity) => {
+        const baseColor = entity.baseColor || Cesium.Color.GREEN;
+        entity.polylineVolume.material = baseColor.withAlpha(0.95);
+
+        if (entity.label) {
+          entity.label.fillColor = Cesium.Color.WHITE;
+          entity.label.outlineColor = Cesium.Color.BLACK;
+          entity.label.font = 'bold 15px Arial';
+          entity.label.scale = 1.0;
+        }
+      });
+
+      // 3. FLASH BOTH 3D GLOBE LABEL AND CROSS-SECTION DATALABEL
+      if (targetEntity && targetEntity.label) {
+        targetEntity.label.font = 'bold 22px Arial';
+
+        labelFlashInterval = setInterval(() => {
+          chartFlashState = !chartFlashState;
+
+          targetEntity.label.fillColor = chartFlashState ? Cesium.Color.YELLOW : Cesium.Color.RED;
+          targetEntity.label.scale = chartFlashState ? 1.5 : 1.0;
+
+          if (profileChartInstance) {
+            profileChartInstance.update('none');
+          }
+        }, 300);
+      }
+
+      if (sourceTrigger !== '3d' && targetEntity) {
+        viewerInstance.flyTo(targetEntity, { duration: 1.2 });
+      }
+
+      openInfoPanelForEntity(targetEntity);
+
+      if (profileChartInstance) {
+        profileChartInstance.update('none');
+      }
+    }
+
+    // UNIFIED MAP & LAYER DISPLAY STATE HANDLER
+    function updateDisplayState() {
+      if (!viewerInstance) return;
+
+      const lightBrown = Cesium.Color.fromCssColorString('#C4A484'); // Light Brown
+      viewerInstance.scene.globe.baseColor = lightBrown;
+      viewerInstance.scene.globe.undergroundColor = Cesium.Color.fromCssColorString('#8B7355'); // Darker brown
+
+      // 1. Globe Hillshade Mode
+      viewerInstance.scene.globe.enableLighting = isXrayActive;
+      viewerInstance.scene.globe.dynamicAtmosphereLighting = !isXrayActive;
+      viewerInstance.scene.globe.showGroundAtmosphere = !isXrayActive;
+      viewerInstance.scene.globe.translucency.frontFaceAlpha = isXrayActive ? 0.65 : 0.5;
+
+      // 2. Base Satellite Imagery Toggle
+      if (viewerInstance.imageryLayers.length > 0) {
+        const baseLayer = viewerInstance.imageryLayers.get(0);
+        if (baseLayer) baseLayer.show = !isBaseMapHidden;
+      }
+
+      // 3. GeoTIFF Layer Toggle
+      if (tiffLayer) {
+        tiffLayer.show = !isTiffHidden;
+      }
+
+      // 4. Point Cloud Opacity - Re-applies native point colors while keeping opacity linked to slider
+      if (pointCloudTileset) {
+        if (pointCloudAlpha <= 0.01) {
+          pointCloudTileset.show = false;
+        } else {
+          pointCloudTileset.show = true;
+          pointCloudTileset.style = new Cesium.Cesium3DTileStyle({
+            color: `vec4(\${COLOR}.r, \${COLOR}.g, \${COLOR}.b, ${pointCloudAlpha})`,
+            pointSize: 2.5
+          });
+        }
+      }
+
+      syncUIControls();
+    }
+
+    function syncUIControls() {
+      const xrayText = isXrayActive ? 'Disable Terrain Hillshade' : 'Enable Terrain Hillshade Mode';
+      ['toggleXrayBtn', 'toggleXrayBtn2'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.textContent = xrayText;
+          btn.classList.toggle('active', isXrayActive);
+        }
+      });
+
+      const baseText = isBaseMapHidden ? 'Show Base Satellite Map' : 'Hide Base Satellite Map';
+      ['toggleBaseMapBtn', 'toggleBaseMapBtn2'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.textContent = baseText;
+          btn.classList.toggle('active', isBaseMapHidden);
+        }
+      });
+
+      const tiffText = isTiffHidden ? 'Show GeoTIFF (5118488)' : 'Hide GeoTIFF (5118488)';
+      ['toggleTiffBtn', 'toggleTiffBtn2'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.textContent = tiffText;
+          btn.classList.toggle('active', isTiffHidden);
+        }
+      });
+
+      ['opacitySlider', 'opacitySlider2'].forEach(id => {
+        const slider = document.getElementById(id);
+        if (slider) {
+          slider.value = pointCloudAlpha;
+        }
+      });
+    }
+
+    async function initApp() {
+      try {
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjBIQ2duTkd2Wklmd2cwZE0iLCJqdGkiOiIzOGU4MTU4OS0wMDc1LTRiMjYtYWU1YS05ZmZjYTNkNDcxNmUiLCJpZCI6NDYyNjUwLCJzdWIiOiJQZXRyb3MgMSIsImlzcyI6Imh0dHBzOi8vYXBpLmNlc2l1bS5jb20iLCJhdWQiOiJUZXN0MSIsImlhdCI6MTc4NzE3MDI3MH0.6aWrUcOLbMEhjKYP-_cM0SxTNaDWWX-ydAuJzvxu9Hk';
+
+        terrainProviderInstance = await Cesium.CesiumTerrainProvider.fromIonAssetId(5128161, {
+            requestVertexNormals: true
+        });
+
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            terrainProvider: terrainProviderInstance,
+            infoBox: false,
+            selectionIndicator: false
+        });
+        viewerInstance = viewer;
+
+        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#C4A484'); // Light Brown
+        viewer.scene.globe.undergroundColor = Cesium.Color.fromCssColorString('#8B7355'); // Darker Brown
+
+        const tiffProvider = await Cesium.IonImageryProvider.fromAssetId(5118488);
+        tiffLayer = viewer.imageryLayers.addImageryProvider(tiffProvider);
+
+        viewer.scene.globe.depthTestAgainstTerrain = true;
+        viewer.scene.globe.translucency.enabled = true;
+        viewer.scene.globe.translucency.frontFaceAlpha = 0.5;
+
+        pointCloudTileset = await Cesium.Cesium3DTileset.fromIonAssetId(5119586);
+        viewer.scene.primitives.add(pointCloudTileset);
+
+        NORMAL_STYLE = new Cesium.Cesium3DTileStyle({ pointSize: 3 });
+        pointCloudTileset.style = NORMAL_STYLE;
+
+        const clipPlane = new Cesium.ClippingPlane(new Cesium.Cartesian3(1.0, 0.0, 0.0), 0.0);
+        const clippingPlanes = new Cesium.ClippingPlaneCollection({
+            planes: [clipPlane],
+            edgeWidth: 1.5,
+            edgeColor: Cesium.Color.CYAN,
+            enabled: false
+        });
+        pointCloudTileset.clippingPlanes = clippingPlanes;
+
+        function getPipeShape(radiusMeters) {
+            const shape = [];
+            for (let i = 0; i < 360; i += 30) {
+                const rad = Cesium.Math.toRadians(i);
+                shape.push(new Cesium.Cartesian2(radiusMeters * Math.cos(rad), radiusMeters * Math.sin(rad)));
+            }
+            return shape;
+        }
+
+        const pipeProfile = getPipeShape(0.4);
+
+        const pipeSource = await Cesium.GeoJsonDataSource.load('Pipe WGS84.geojson');
+        const rawEntities = pipeSource.entities.values;
+        const PIPE_HEIGHT_OFFSET = 0.0; 
+
+        const savedElevations = JSON.parse(localStorage.getItem('pipe_height_edits') || '{}');
+        const walkthroughPositions = [];
+
+        for (let i = 0; i < rawEntities.length; i++) {
+            const rawEntity = rawEntities[i];
+
+            if (rawEntity.polyline) {
+                const rawPositions = rawEntity.polyline.positions.getValue(Cesium.JulianDate.now());
+
+                const cartoPositions = rawPositions.map((cartesian, vIdx) => {
+                    const carto = Cesium.Cartographic.fromCartesian(cartesian);
+                    const savedKey = `${i}_${vIdx}`;
+                    if (savedElevations[savedKey] !== undefined) {
+                        carto.height = savedElevations[savedKey];
+                    } else {
+                        carto.height += PIPE_HEIGHT_OFFSET;
+                    }
+                    return carto;
+                });
+
+                const correctedPositions = cartoPositions.map(carto => 
+                    Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, carto.height)
+                );
+
+                correctedPositions.forEach(pt => walkthroughPositions.push(pt));
+
+                const labelPosition = calculatePolylineMidpoint(correctedPositions);
+
+                let color = Cesium.Color.GREEN;
+                let orderText = '';
+
+                if (rawEntity.properties) {
+                    const props = rawEntity.properties.getValue(Cesium.JulianDate.now());
+                    const orderVal = props.order ?? props.Order ?? props.ORDER ?? '';
+                    orderText = String(orderVal);
+
+                    if (orderText === '9' && !props.survey && !props.Survey && !props.SURVEY) {
+                        rawEntity.properties.addProperty('survey', 'https://drive.google.com/file/d/1iY7HtZVdWbep3_JWxAh9oeSaDJIgCsGL/view?usp=drive_link');
+                    }
+
+                    const crit = String(
+                        props.Criticality || props.criticality || props.CRITICALITY || props.crit || ''
+                    ).trim().toLowerCase();
+
+                    if (crit.includes('red') || crit.includes('high') || crit === '3') {
+                        color = Cesium.Color.RED;
+                    } else if (crit.includes('amber') || crit.includes('med') || crit.includes('orange') || crit === '2') {
+                        color = Cesium.Color.ORANGE;
+                    } else if (crit.includes('green') || crit.includes('low') || crit === '1') {
+                        color = Cesium.Color.GREEN;
+                    }
+                }
+
+                const pipeEntity = viewer.entities.add({
+                    name: '3D Water Pipe',
+                    position: labelPosition,
+                    properties: rawEntity.properties,
+                    polylineVolume: {
+                        positions: correctedPositions,
+                        shape: pipeProfile,
+                        material: color.withAlpha(0.95),
+                        cornerType: Cesium.CornerType.ROUNDED
+                    },
+                    label: {
+                        text: orderText !== '' ? orderText : '0',
+                        font: 'bold 15px Arial',
+                        fillColor: Cesium.Color.WHITE,
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 4,
+                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+                        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+                        pixelOffset: new Cesium.Cartesian2(0, 0),
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY
+                    }
+                });
+
+                pipeEntity.cartoPositions = cartoPositions;
+                pipeEntity.baseColor = color;
+                createdPipeEntities.push(pipeEntity);
+            }
+        }
+
+        buildSpatialNodeRegistry();
+        viewer.flyTo(pointCloudTileset, { duration: 2.0 });
+
+        function saveHeightsToLocalStorage() {
+            const store = {};
+            createdPipeEntities.forEach((entity, pipeIdx) => {
+                entity.cartoPositions.forEach((carto, vIdx) => {
+                    store[`${pipeIdx}_${vIdx}`] = parseFloat(carto.height.toFixed(2));
+                });
+            });
+            localStorage.setItem('pipe_height_edits', JSON.stringify(store));
+        }
+
+        function updateEntity3DGeometry(entity) {
+            const updatedCartesians = entity.cartoPositions.map(c => 
+                Cesium.Cartesian3.fromRadians(c.longitude, c.latitude, c.height)
+            );
+            entity.polylineVolume.positions = updatedCartesians;
+            entity.position = calculatePolylineMidpoint(updatedCartesians);
+        }
+
+        function updateVertexHeightAndSnap(dataIndex, newHeight) {
+            const item = pipeDataGlobal[dataIndex];
+            if (!item) return;
+
+            const targetEntity = createdPipeEntities[item.pipeIndex];
+            if (!targetEntity || !targetEntity.cartoPositions[item.vertexIndex]) return;
+
+            const targetCarto = targetEntity.cartoPositions[item.vertexIndex];
+            const nodeKey = `${targetCarto.longitude.toFixed(7)}_${targetCarto.latitude.toFixed(7)}`;
+            const connectedNodes = nodeRegistry.get(nodeKey) || [{ pipeIndex: item.pipeIndex, vertexIndex: item.vertexIndex }];
+
+            connectedNodes.forEach(node => {
+                const ent = createdPipeEntities[node.pipeIndex];
+                if (ent && ent.cartoPositions[node.vertexIndex]) {
+                    ent.cartoPositions[node.vertexIndex].height = newHeight;
+                    updateEntity3DGeometry(ent);
+
+                    const matches = pipeDataGlobal.filter(p => p.pipeIndex === node.pipeIndex && p.vertexIndex === node.vertexIndex);
+                    matches.forEach(m => {
+                        m.yPipe = newHeight;
+                        m.depthVal = parseFloat((m.yTerrain - newHeight).toFixed(2));
+                    });
+                }
+            });
+
+            saveHeightsToLocalStorage();
+        }
+
+        function openInfoPanelForEntity(entity) {
+            currentlySelectedEntity = entity;
+            const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
+            const surveyVal = props.survey ?? props.Survey ?? props.SURVEY ?? 'N/A';
+            
+            let surveyDisplay = surveyVal;
+            if (String(surveyVal).startsWith('http')) {
+                surveyDisplay = `<button onclick="openPdfViewer('${surveyVal}')" style="background:none; border:none; color:#00D2FF; text-decoration:underline; font-weight:bold; cursor:pointer; padding:0; font-size:12px;">Open PDF Document ↗</button>`;
+            }
+
+            let tableHtml = '<table>';
+            tableHtml += `<tr><td class="label-col">Survey:</td><td>${surveyDisplay}</td></tr>`;
+
+            for (const [key, value] of Object.entries(props)) {
+                if (['survey', 'Survey', 'SURVEY'].includes(key)) continue;
+                let valDisplay = value !== null && value !== undefined ? value : '';
+                if (String(valDisplay).startsWith('http')) {
+                    valDisplay = `<button onclick="openPdfViewer('${valDisplay}')" style="background:none; border:none; color:#00D2FF; text-decoration:underline; cursor:pointer; padding:0; font-size:12px;">View Document ↗</button>`;
+                }
+                tableHtml += `<tr><td class="label-col">${key}:</td><td>${valDisplay}</td></tr>`;
+            }
+            tableHtml += '</table>';
+
+            if (entity.cartoPositions) {
+                tableHtml += `<div class="vertex-editor-box">
+                    <h4 style="margin: 0 0 8px 0; color: #00D2FF; font-size: 13px;">Edit Vertex Heights (Meters):</h4>`;
+                
+                entity.cartoPositions.forEach((carto, idx) => {
+                    const hVal = carto.height.toFixed(2);
+                    tableHtml += `
+                        <div class="vertex-row">
+                            <span>Vertex ${idx + 1}:</span>
+                            <input type="number" step="0.2" class="vertex-input" data-vindex="${idx}" value="${hVal}">
+                        </div>`;
+                });
+                tableHtml += `</div>`;
+            }
+
+            tableHtml += `
+                <div style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: #00D2FF; font-size: 13px;">Attach Inspection Photo:</h4>
+                    <input type="file" id="photoLoader" accept="image/*" style="font-size: 11px; color: #ccc; margin-bottom: 8px; width: 100%;">
+                    <div id="photoPreviewContainer">
+                        ${entity.attachedPhoto ? `<img src="${entity.attachedPhoto}" style="width:100%; border-radius:4px; border:1px solid #00D2FF;">` : '<span style="color:#888; font-size:11px;">No photo attached.</span>'}
+                    </div>
+                </div>`;
+
+            const infoPanel = document.getElementById('infoPanel');
+            const infoContent = document.getElementById('infoContent');
+            infoContent.innerHTML = tableHtml;
+            infoPanel.style.display = 'block';
+
+            const photoLoader = document.getElementById('photoLoader');
+            photoLoader.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const imageUrl = URL.createObjectURL(file);
+                    entity.attachedPhoto = imageUrl;
+                    document.getElementById('photoPreviewContainer').innerHTML = 
+                        `<img src="${imageUrl}" style="width:100%; border-radius:4px; border:1px solid #00D2FF;">`;
+                }
+            });
+
+            if (entity.cartoPositions) {
+                const inputs = infoContent.querySelectorAll('.vertex-input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', (e) => {
+                        const vIdx = parseInt(e.target.getAttribute('data-vindex'));
+                        const newH = parseFloat(e.target.value);
+
+                        if (!isNaN(newH)) {
+                            const pipeIdx = createdPipeEntities.indexOf(entity);
+                            let globalIdx = 0;
+                            for (let k = 0; k < pipeIdx; k++) {
+                                globalIdx += createdPipeEntities[k].cartoPositions.length;
+                            }
+                            globalIdx += vIdx;
+
+                            updateVertexHeightAndSnap(globalIdx, newH);
+                            updateProfileChart();
+                        }
+                    });
+                });
+            }
+        }
+
+        function populatePipeTable() {
+            const tableBody = document.getElementById('pipeTableBody');
+            tableBody.innerHTML = '';
+            document.getElementById('tablePipeCount').textContent = `(${createdPipeEntities.length} Total Pipes)`;
+
+            createdPipeEntities.forEach((entity, pipeIdx) => {
+                const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
+                const orderVal = props.order ?? props.Order ?? props.ORDER ?? (pipeIdx + 1);
+                
+                const crit = String(props.Criticality || props.criticality || props.CRITICALITY || props.crit || 'Green').trim();
+                let badgeClass = 'badge-green';
+                const critLower = crit.toLowerCase();
+                if (critLower.includes('red') || critLower.includes('high') || critLower === '3') badgeClass = 'badge-red';
+                else if (critLower.includes('amber') || critLower.includes('med') || critLower.includes('orange') || critLower === '2') badgeClass = 'badge-amber';
+
+                let segLen = 0;
+                const cPos = entity.cartoPositions;
+                for (let j = 0; j < cPos.length - 1; j++) {
+                    const p1 = Cesium.Cartesian3.fromRadians(cPos[j].longitude, cPos[j].latitude, cPos[j].height);
+                    const p2 = Cesium.Cartesian3.fromRadians(cPos[j+1].longitude, cPos[j+1].latitude, cPos[j+1].height);
+                    segLen += Cesium.Cartesian3.distance(p1, p2);
+                }
+
+                const diameter = props.Diameter || props.diameter || props.DIAMETER || '0.8m';
+                
+                const pipePoints = pipeDataGlobal.filter(p => p.pipeIndex === pipeIdx);
+                let avgDepth = 'N/A';
+                if (pipePoints.length > 0) {
+                    const sumD = pipePoints.reduce((acc, curr) => acc + curr.depthVal, 0);
+                    avgDepth = `${(sumD / pipePoints.length).toFixed(2)}m`;
+                }
+
+                const surveyUrl = props.survey ?? props.Survey ?? props.SURVEY ?? '';
+                let surveyBtn = '<span style="color:#666;">N/A</span>';
+                if (String(surveyUrl).startsWith('http')) {
+                    surveyBtn = `<button onclick="event.stopPropagation(); openPdfViewer('${surveyUrl}')" style="background:#008CBA; border:none; color:#fff; padding:2px 6px; border-radius:3px; cursor:pointer; font-size:10px;">PDF ↗</button>`;
+                }
+
+                const row = document.createElement('tr');
+                row.setAttribute('data-pipe-index', pipeIdx);
+                if (pipeIdx === selectedPipeIndex) row.classList.add('selected-row');
+
+                row.innerHTML = `
+                    <td><strong>Pipe ${orderVal}</strong></td>
+                    <td><span class="badge-crit ${badgeClass}">${crit}</span></td>
+                    <td>${segLen.toFixed(1)}m</td>
+                    <td>${diameter}</td>
+                    <td>${avgDepth}</td>
+                    <td>${surveyBtn}</td>
+                `;
+
+                row.addEventListener('click', () => {
+                    selectPipe(pipeIdx, 'table');
+                });
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function updateProfileChart() {
+            pipeDataGlobal = [];
+            const denseSamplePoints = [];
+            let cumulativeChainage = 0;
+
+            const STEP_DISTANCE_METERS = 0.4; // High-resolution step along corridor
+
+            createdPipeEntities.forEach((entity, pipeIdx) => {
+                const cPos = entity.cartoPositions;
+                const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
+                const orderVal = String(props.order ?? props.Order ?? props.ORDER ?? pipeIdx);
+
+                let hexColor = '#27ae60';
+                const crit = String(props.Criticality || props.criticality || props.CRITICALITY || props.crit || '').trim().toLowerCase();
+                if (crit.includes('red') || crit.includes('high') || crit === '3') {
+                    hexColor = '#e74c3c';
+                } else if (crit.includes('amber') || crit.includes('med') || crit.includes('orange') || crit === '2') {
+                    hexColor = '#f39c12';
+                }
+
+                for (let j = 0; j < cPos.length - 1; j++) {
+                    const startCarto = cPos[j];
+                    const endCarto = cPos[j+1];
+
+                    const p1 = Cesium.Cartesian3.fromRadians(startCarto.longitude, startCarto.latitude, startCarto.height);
+                    const p2 = Cesium.Cartesian3.fromRadians(endCarto.longitude, endCarto.latitude, endCarto.height);
+                    const segDist = Cesium.Cartesian3.distance(p1, p2);
+
+                    const steps = Math.max(1, Math.ceil(segDist / STEP_DISTANCE_METERS));
+
+                    for (let s = 0; s < steps; s++) {
+                        const ratio = s / steps;
+                        const lon = startCarto.longitude + (endCarto.longitude - startCarto.longitude) * ratio;
+                        const lat = startCarto.latitude + (endCarto.latitude - startCarto.latitude) * ratio;
+                        const pipeH = startCarto.height + (endCarto.height - startCarto.height) * ratio;
+
+                        const stepDist = (s === 0 && j === 0) ? 0 : (segDist / steps);
+                        cumulativeChainage += stepDist;
+                        
+                        denseSamplePoints.push({
+                            carto: new Cesium.Cartographic(lon, lat),
+                            chainage: parseFloat(cumulativeChainage.toFixed(1)),
+                            pipeH: pipeH,
+                            pipeIndex: pipeIdx,
+                            vertexIndex: j,
+                            isMainVertex: (s === 0),
+                            midpointLabel: (s === Math.floor(steps / 2) && j === Math.floor((cPos.length - 1) / 2)) ? orderVal : '',
+                            hexColor: hexColor
+                        });
+                    }
+                }
+
+                const lastIdx = cPos.length - 1;
+                const lastCarto = cPos[lastIdx];
+                denseSamplePoints.push({
+                    carto: new Cesium.Cartographic(lastCarto.longitude, lastCarto.latitude),
+                    chainage: parseFloat(cumulativeChainage.toFixed(1)),
+                    pipeH: lastCarto.height,
+                    pipeIndex: pipeIdx,
+                    vertexIndex: lastIdx,
+                    isMainVertex: true,
+                    midpointLabel: '',
+                    hexColor: hexColor
+                });
+            });
+
+            // Sample DTM Ground Surface
+            const centerCartographics = denseSamplePoints.map(p => p.carto);
+            const sampledCenterTerrain = await Cesium.sampleTerrainMostDetailed(terrainProviderInstance, centerCartographics);
+
+            denseSamplePoints.forEach((pt, idx) => {
+                const groundElev = sampledCenterTerrain[idx] ? sampledCenterTerrain[idx].height : 0;
+                const depth = groundElev - pt.pipeH;
+
+                pipeDataGlobal.push({
+                    x: pt.chainage,
+                    yPipe: parseFloat(pt.pipeH.toFixed(2)),
+                    yTerrain: parseFloat(groundElev.toFixed(2)),
+                    depthVal: parseFloat(depth.toFixed(2)),
+                    orderLabel: pt.midpointLabel,
+                    pipeIndex: pt.pipeIndex,
+                    vertexIndex: pt.vertexIndex,
+                    isMainVertex: pt.isMainVertex,
+                    segmentColor: pt.hexColor
+                });
+            });
+
+            populatePipeTable();
+
+            const canvas = document.getElementById('profileChart');
+            const ctx = canvas.getContext('2d');
+            if (profileChartInstance) {
+                profileChartInstance.destroy();
+            }
+
+            profileChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'DTM Ground Surface (m)',
+                            data: pipeDataGlobal,
+                            parsing: { xAxisKey: 'x', yAxisKey: 'yTerrain' },
+                            borderColor: '#d35400',
+                            backgroundColor: 'rgba(211, 84, 0, 0.15)',
+                            borderWidth: 2.5,
+                            pointRadius: 0,
+                            fill: true,
+                            tension: 0.1,
+                            datalabels: { display: false }
+                        },
+                        {
+                            label: 'Pipe Invert Elevation (m)',
+                            data: pipeDataGlobal,
+                            parsing: { xAxisKey: 'x', yAxisKey: 'yPipe' },
+                            pointRadius: (ctx) => {
+                                const pt = ctx.raw;
+                                if (!pt || !pt.isMainVertex) return 0;
+                                const isSel = pt.pipeIndex === selectedPipeIndex;
+                                if (isSel) return chartFlashState ? 10 : 8;
+                                return pt.orderLabel ? 6 : 4;
+                            },
+                            pointHoverRadius: 10,
+                            pointBackgroundColor: (ctx) => ctx.raw?.segmentColor || '#27ae60',
+                            pointBorderColor: (ctx) => {
+                                if (ctx.raw?.pipeIndex === selectedPipeIndex) return chartFlashState ? '#FFFF00' : '#FF0000';
+                                return '#ffffff';
+                            },
+                            pointBorderWidth: (ctx) => (ctx.raw?.pipeIndex === selectedPipeIndex) ? 3 : 1.5,
+                            segment: {
+                                borderColor: ctx => ctx.p0.raw ? ctx.p0.raw.segmentColor : '#27ae60',
+                                borderWidth: ctx => (ctx.p0.raw && ctx.p0.raw.pipeIndex === selectedPipeIndex) ? 4.5 : 3
+                            },
+                            borderWidth: 3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            ticks: { color: '#aaa', font: { size: 10 } },
+                            title: { display: true, text: 'Chainage / Distance (m)', color: '#888' }
+                        },
+                        y: {
+                            ticks: { color: '#aaa', font: { size: 10 } },
+                            title: { display: true, text: 'Elevation (m)', color: '#888' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true, labels: { color: '#ccc', font: { size: 10 } } },
+                        zoom: {
+                            pan: { enabled: true, mode: 'xy' },
+                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const raw = context.raw;
+                                    if (context.datasetIndex === 1) {
+                                        const depthText = raw.depthVal >= 0 
+                                            ? `Depth: ${raw.depthVal}m (Buried)` 
+                                            : `Clearance: ${Math.abs(raw.depthVal)}m (Above Ground)`;
+                                        return `Pipe ${raw.orderLabel || ''}: ${raw.yPipe}m | ${depthText}`;
+                                    }
+                                    return `DTM Ground: ${raw.yTerrain}m`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            display: (ctx) => {
+                                const pt = ctx.dataset.data[ctx.dataIndex];
+                                return pt && pt.orderLabel !== undefined && pt.orderLabel !== '';
+                            },
+                            align: 'top',
+                            anchor: 'center',
+                            offset: 6,
+                            color: (ctx) => {
+                                const pt = ctx.dataset.data[ctx.dataIndex];
+                                if (pt?.pipeIndex === selectedPipeIndex) {
+                                    return chartFlashState ? '#000000' : '#ffffff';
+                                }
+                                return '#ffffff';
+                            },
+                            backgroundColor: (ctx) => {
+                                const pt = ctx.dataset.data[ctx.dataIndex];
+                                if (pt?.pipeIndex === selectedPipeIndex) {
+                                    return chartFlashState ? '#FFFF00' : '#e74c3c';
+                                }
+                                return pt?.segmentColor || '#333';
+                            },
+                            borderRadius: 4,
+                            borderColor: (ctx) => (ctx.dataset.data[ctx.dataIndex]?.pipeIndex === selectedPipeIndex) ? '#FFFF00' : 'transparent',
+                            borderWidth: (ctx) => (ctx.dataset.data[ctx.dataIndex]?.pipeIndex === selectedPipeIndex) ? 2 : 0,
+                            padding: { top: 3, bottom: 3, left: 7, right: 7 },
+                            font: (ctx) => {
+                                const pt = ctx.dataset.data[ctx.dataIndex];
+                                if (pt?.pipeIndex === selectedPipeIndex) {
+                                    return { weight: 'bold', size: chartFlashState ? 13 : 11 };
+                                }
+                                return { weight: 'bold', size: 11 };
+                            },
+                            formatter: (value) => `${value.orderLabel} (d:${value.depthVal}m)`
+                        }
+                    }
+                }
+            });
+
+            let isDraggingPoint = false;
+            let activePointIndex = null;
+
+            canvas.onmousedown = (e) => {
+                if (!profileChartInstance) return;
+                const points = profileChartInstance.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+                if (points.length > 0 && points[0].datasetIndex === 1) {
+                    isDraggingPoint = true;
+                    activePointIndex = points[0].index;
+                    if (profileChartInstance.options.plugins.zoom) {
+                        profileChartInstance.options.plugins.zoom.pan.enabled = false;
+                    }
+                }
+            };
+
+            canvas.onmousemove = (e) => {
+                if (isDraggingPoint && activePointIndex !== null && profileChartInstance) {
+                    const rect = canvas.getBoundingClientRect();
+                    const yPixel = e.clientY - rect.top;
+                    const newHeight = parseFloat(profileChartInstance.scales.y.getValueForPixel(yPixel).toFixed(2));
+                    
+                    updateVertexHeightAndSnap(activePointIndex, newHeight);
+                    profileChartInstance.update('none');
+                }
+            };
+
+            canvas.onmouseup = () => {
+                if (isDraggingPoint) {
+                    isDraggingPoint = false;
+                    activePointIndex = null;
+                    if (profileChartInstance && profileChartInstance.options.plugins.zoom) {
+                        profileChartInstance.options.plugins.zoom.pan.enabled = true;
+                    }
+                    updateProfileChart();
+                    if (currentlySelectedEntity) {
+                        openInfoPanelForEntity(currentlySelectedEntity);
+                    }
+                }
+            };
+
+            canvas.onclick = (e) => {
+                if (!profileChartInstance || isDraggingPoint) return;
+                const points = profileChartInstance.getElementsAtEventForMode(e, 'index', { intersect: false }, false);
+                const pipeHit = points.find(p => p.datasetIndex === 1);
+                
+                if (pipeHit) {
+                    const item = pipeDataGlobal[pipeHit.index];
+                    if (item && item.pipeIndex !== undefined) {
+                        selectPipe(item.pipeIndex, 'chart');
+                    }
+                }
+            };
+        }
+
+        updateProfileChart();
+
+        document.getElementById('resetZoomBtn').addEventListener('click', () => {
+            if (profileChartInstance) {
+                profileChartInstance.resetZoom();
+            }
+        });
+
+        // SCREEN SLICER / RESIZER
+        const resizer = document.getElementById('resizer');
+        const profileDrawer = document.getElementById('profileDrawer');
+        const xrayPanel = document.getElementById('xrayPanel');
+        const infoPanel = document.getElementById('infoPanel');
+        const tablePanel = document.getElementById('tablePanel');
+        let isResizing = false;
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            resizer.classList.add('dragging');
+            document.body.style.cursor = 'ns-resize';
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const newHeight = window.innerHeight - e.clientY;
+            
+            if (newHeight >= 80 && newHeight <= window.innerHeight * 0.8) {
+                profileDrawer.style.height = `${newHeight}px`;
+                resizer.style.bottom = `${newHeight}px`;
+                tablePanel.style.bottom = `${newHeight + 15}px`;
+                
+                const panelsMaxHeight = `calc(100vh - ${newHeight + 40}px)`;
+                xrayPanel.style.maxHeight = panelsMaxHeight;
+                infoPanel.style.maxHeight = panelsMaxHeight;
+
+                if (profileChartInstance) {
+                    profileChartInstance.resize();
+                }
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                resizer.classList.remove('dragging');
+                document.body.style.cursor = 'default';
+                document.body.style.userSelect = 'auto';
+            }
+        });
+
+        // CONTROL PANEL EVENT BINDINGS
+        document.getElementById('clearStorageBtn').addEventListener('click', () => {
+            localStorage.removeItem('pipe_height_edits');
+            alert('Saved height edits cleared. Reloading original positions...');
+            location.reload();
+        });
+
+        document.getElementById('resetViewBtn').addEventListener('click', () => {
+            viewer.flyTo(pointCloudTileset, { duration: 1.5 });
+        });
+
+        const toggleXrayHandler = () => {
+          isXrayActive = !isXrayActive;
+          updateDisplayState();
+        };
+        document.getElementById('toggleXrayBtn').addEventListener('click', toggleXrayHandler);
+        document.getElementById('toggleXrayBtn2').addEventListener('click', toggleXrayHandler);
+
+        const toggleBaseMapHandler = () => {
+          isBaseMapHidden = !isBaseMapHidden;
+          updateDisplayState();
+        };
+        document.getElementById('toggleBaseMapBtn').addEventListener('click', toggleBaseMapHandler);
+        document.getElementById('toggleBaseMapBtn2').addEventListener('click', toggleBaseMapHandler);
+
+        const toggleTiffHandler = () => {
+          isTiffHidden = !isTiffHidden;
+          updateDisplayState();
+        };
+        document.getElementById('toggleTiffBtn').addEventListener('click', toggleTiffHandler);
+        document.getElementById('toggleTiffBtn2').addEventListener('click', toggleTiffHandler);
+
+        const opacitySliderHandler = (e) => {
+          pointCloudAlpha = parseFloat(e.target.value);
+          updateDisplayState();
+        };
+        document.getElementById('opacitySlider').addEventListener('input', opacitySliderHandler);
+        document.getElementById('opacitySlider2').addEventListener('input', opacitySliderHandler);
+
+        // 3D Cut Plane Slicer Controls
+        const toggleClipBtn = document.getElementById('toggleClipBtn');
+        const clipSlider = document.getElementById('clipSlider');
+        toggleClipBtn.addEventListener('click', () => {
+            clippingPlanes.enabled = !clippingPlanes.enabled;
+            toggleClipBtn.textContent = clippingPlanes.enabled ? 'Disable 3D Slice' : 'Enable 3D Slice';
+            toggleClipBtn.classList.toggle('active', clippingPlanes.enabled);
+            clipSlider.disabled = !clippingPlanes.enabled;
+        });
+        clipSlider.addEventListener('input', (e) => {
+            clipPlane.distance = parseFloat(e.target.value);
+        });
+
+        // Save & Export GeoJSON
+        document.getElementById('exportGeoJsonBtn').addEventListener('click', async () => {
+            const features = createdPipeEntities.map(e => {
+                const coords = e.cartoPositions.map(c => [
+                    Cesium.Math.toDegrees(c.longitude),
+                    Cesium.Math.toDegrees(c.latitude),
+                    parseFloat(c.height.toFixed(2))
+                ]);
+                const props = e.properties ? e.properties.getValue(Cesium.JulianDate.now()) : {};
+                return {
+                    type: "Feature",
+                    geometry: { type: "LineString", coordinates: coords },
+                    properties: props
+                };
+            });
+
+            const geojsonString = JSON.stringify({ type: "FeatureCollection", features }, null, 2);
+
+            if ('showSaveFilePicker' in window) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: 'Pipe WGS84.geojson',
+                        types: [{
+                            description: 'GeoJSON Spatial File',
+                            accept: { 'application/json': ['.geojson', '.json'] }
+                        }]
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(geojsonString);
+                    await writable.close();
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('File save error:', err);
+                    }
+                }
+            } else {
+                const blob = new Blob([geojsonString], { type: "application/json" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "Pipe WGS84.geojson";
+                link.click();
+            }
+        });
+
+        // 3D Measurement Tool
+        let isMeasuring = false;
+        let measurePoints = [];
+        let measureEntities = [];
+        const toggleMeasureBtn = document.getElementById('toggleMeasureBtn');
+        const clearMeasureBtn = document.getElementById('clearMeasureBtn');
+
+        toggleMeasureBtn.addEventListener('click', () => {
+            isMeasuring = !isMeasuring;
+            toggleMeasureBtn.classList.toggle('active', isMeasuring);
+            toggleMeasureBtn.textContent = isMeasuring ? 'Click 3D Points...' : '📏 3D Distance Measure';
+        });
+
+        clearMeasureBtn.addEventListener('click', () => {
+            measureEntities.forEach(e => viewer.entities.remove(e));
+            measureEntities = [];
+            measurePoints = [];
+        });
+
+        // Corridor Fly-Through Walkthrough
+        let isWalking = false;
+        let walkthroughIndex = 0;
+        const flyThroughBtn = document.getElementById('flyThroughBtn');
+
+        flyThroughBtn.addEventListener('click', () => {
+            if (isWalking) {
+                isWalking = false;
+                flyThroughBtn.textContent = "🎬 Fly-Through Corridor";
+                flyThroughBtn.classList.remove('active');
+                return;
+            }
+            if (walkthroughPositions.length < 2) return;
+            isWalking = true;
+            flyThroughBtn.textContent = "⏹ Stop Fly-Through";
+            flyThroughBtn.classList.add('active');
+            walkthroughIndex = 0;
+            runWalkthroughStep();
+        });
+
+        function runWalkthroughStep() {
+            if (!isWalking || walkthroughIndex >= walkthroughPositions.length) {
+                isWalking = false;
+                flyThroughBtn.textContent = "🎬 Fly-Through Corridor";
+                flyThroughBtn.classList.remove('active');
+                return;
+            }
+            const currentPos = walkthroughPositions[walkthroughIndex];
+
+            viewer.camera.flyTo({
+                destination: currentPos,
+                orientation: {
+                    heading: Cesium.Math.toRadians(45),
+                    pitch: Cesium.Math.toRadians(-20),
+                    roll: 0
+                },
+                duration: 2.5,
+                complete: () => {
+                    walkthroughIndex++;
+                    if (isWalking) setTimeout(runWalkthroughStep, 400);
+                }
+            });
+        }
+
+        // CLICK HANDLER IN 3D VIEW
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+
+        handler.setInputAction((click) => {
+            if (isMeasuring) {
+                const pickedPos = viewer.scene.pickPosition(click.position);
+                if (Cesium.defined(pickedPos)) {
+                    measurePoints.push(pickedPos);
+
+                    const ptEntity = viewer.entities.add({
+                        position: pickedPos,
+                        point: { pixelSize: 8, color: Cesium.Color.YELLOW, disableDepthTestDistance: Number.POSITIVE_INFINITY }
+                    });
+                    measureEntities.push(ptEntity);
+
+                    if (measurePoints.length >= 2) {
+                        const p1 = measurePoints[measurePoints.length - 2];
+                        const p2 = measurePoints[measurePoints.length - 1];
+                        const dist = Cesium.Cartesian3.distance(p1, p2).toFixed(2);
+
+                        const lineEntity = viewer.entities.add({
+                            polyline: {
+                                positions: [p1, p2],
+                                width: 3,
+                                material: Cesium.Color.YELLOW,
+                                depthFailMaterial: Cesium.Color.YELLOW
+                            },
+                            position: Cesium.Cartesian3.midpoint(p1, p2, new Cesium.Cartesian3()),
+                            label: {
+                                text: `${dist}m`,
+                                font: 'bold 14px Arial',
+                                fillColor: Cesium.Color.YELLOW,
+                                outlineColor: Cesium.Color.BLACK,
+                                outlineWidth: 3,
+                                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                                disableDepthTestDistance: Number.POSITIVE_INFINITY
+                            }
+                        });
+                        measureEntities.push(lineEntity);
+                    }
+                }
+                return;
+            }
+
+            const picked = viewer.scene.pick(click.position);
+            if (Cesium.defined(picked) && picked.id && createdPipeEntities.includes(picked.id)) {
+                const pipeIdx = createdPipeEntities.indexOf(picked.id);
+                selectPipe(pipeIdx, '3d');
+            } else {
+                infoPanel.style.display = 'none';
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+      } catch (error) {
+        console.error('Cesium Execution Error:', error);
+        alert('Error loading map: ' + error.message);
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
