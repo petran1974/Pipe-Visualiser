@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>3D Pipe, Point Cloud & GeoTIFF Visualizer - Complete Suite</title>
+  <title>3D Pipe, Point Cloud & GeoTIFF Visualizer - Advanced Suite</title>
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
   
@@ -18,7 +18,7 @@
       margin: 0; 
       padding: 0; 
       overflow: hidden; 
-      background: #000;
+      background: #f0f2f5;
       font-family: Arial, sans-serif;
     }
 
@@ -30,44 +30,124 @@
       left: 0;
     }
 
-    /* Left Control Dashboard */
+    /* SVG Callout Leader Line Overlay */
+    #calloutSvg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1999;
+    }
+
+    /* Container for Dynamic Floating Cards */
+    #popupContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2000;
+      overflow: hidden;
+    }
+
+    /* Compact Draggable Floating HUD Card (Light Theme) */
+    .floating-hud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.95);
+      color: #212529;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      border: 1px solid #007bff;
+      pointer-events: auto;
+      cursor: grab;
+      width: 240px;
+      box-sizing: border-box;
+      user-select: none;
+      transition: top 0.15s ease-out, left 0.15s ease-out;
+    }
+    .floating-hud:active { cursor: grabbing; }
+    .floating-hud h4 {
+      margin: 0 0 4px 0;
+      font-size: 11px;
+      color: #007bff;
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 3px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .health-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #f8f9fa;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .health-table th {
+      background: #e9ecef;
+      color: #495057;
+      font-size: 8px;
+      padding: 4px 2px;
+      border: 1px solid #dee2e6;
+      text-align: center;
+    }
+    .health-table td {
+      background: #ffffff;
+      color: #212529;
+      font-size: 9px;
+      font-weight: bold;
+      padding: 4px 2px;
+      border: 1px solid #dee2e6;
+      text-align: center;
+    }
+
+    /* Left Control Dashboard - Light Theme */
     #xrayPanel {
       position: absolute;
-      top: 20px;
-      left: 20px;
-      background: rgba(20, 20, 20, 0.92);
-      color: #ffffff;
+      top: 0;
+      left: 0;
+      background: rgba(255, 255, 255, 0.95);
+      color: #212529;
       padding: 15px 18px;
-      border-radius: 8px;
+      border-radius: 0 8px 8px 0;
       font-size: 13px;
       z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.2);
-      width: 230px;
-      max-height: calc(100vh - 270px);
+      box-shadow: 4px 4px 15px rgba(0,0,0,0.1);
+      border: 1px solid #dee2e6;
+      border-left: none;
+      border-top: none;
+      width: 240px;
+      height: calc(100vh - 248px);
+      max-height: calc(100vh - 248px);
       overflow-y: auto;
+      box-sizing: border-box;
     }
     #xrayPanel h3 {
       margin: 0 0 10px 0;
       font-size: 14px;
-      color: #00D2FF;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      color: #007bff;
+      border-bottom: 1px solid #dee2e6;
       padding-bottom: 5px;
     }
     .panel-section {
       margin-bottom: 12px;
       padding-bottom: 8px;
-      border-bottom: 1px dashed rgba(255,255,255,0.15);
+      border-bottom: 1px dashed #dee2e6;
     }
     .panel-section h4 {
       margin: 0 0 6px 0;
       font-size: 12px;
-      color: #aaa;
+      color: #6c757d;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     .btn-tool {
-      background: #008CBA;
+      background: #007bff;
       border: none;
       color: white;
       padding: 8px 10px;
@@ -79,53 +159,74 @@
       transition: background 0.2s;
       margin-bottom: 6px;
     }
-    .btn-tool:hover { background: #007399; }
-    .btn-tool.active { background: #e74c3c; }
-    .btn-secondary { background: #4a5568; }
-    .btn-secondary:hover { background: #2d3748; }
-    .btn-green { background: #27ae60; }
-    .btn-green:hover { background: #1e8449; }
-    .btn-warn { background: #d35400; }
-    .btn-warn:hover { background: #a04000; }
+    .btn-tool:hover { background: #0056b3; }
+    .btn-tool.active { background: #dc3545; }
+    .btn-secondary { background: #6c757d; }
+    .btn-secondary:hover { background: #5a6268; }
+    .btn-green { background: #28a745; }
+    .btn-green:hover { background: #218838; }
+    .btn-warn { background: #fd7e14; color: #fff; }
+    .btn-warn:hover { background: #e8590c; }
     
     .slider-container { margin-top: 6px; margin-bottom: 6px; }
-    .slider-container label { display: block; font-size: 11px; color: #aaa; margin-bottom: 4px; }
+    .slider-container label { display: block; font-size: 11px; color: #495057; margin-bottom: 4px; }
 
-    /* Right Attribute & Inspection Panel */
+    /* Right Attribute & Inspection Panel - Light Theme */
     #infoPanel {
       display: none;
       position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(20, 20, 20, 0.92);
-      color: #ffffff;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #212529;
       padding: 15px 20px;
       border-radius: 8px;
       font-size: 13px;
       min-width: 270px;
-      max-width: 360px;
+      max-width: 380px;
       max-height: calc(100vh - 270px);
       overflow-y: auto;
       z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      border: 1px solid #dee2e6;
       word-wrap: break-word;
     }
-    #infoPanel h3 {
-      margin: 0 0 10px 0;
-      font-size: 15px;
-      color: #4CAF50;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+    .info-header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #dee2e6;
       padding-bottom: 6px;
+      margin-bottom: 10px;
     }
-    #infoPanel table { width: 100%; border-collapse: collapse; }
-    #infoPanel td { padding: 4px 0; vertical-align: top; }
-    #infoPanel td.label-col { color: #bbb; font-weight: bold; padding-right: 12px; width: 35%; }
+    #infoPanel h3 {
+      margin: 0;
+      font-size: 15px;
+      color: #28a745;
+      border: none;
+      padding: 0;
+    }
+    .btn-deselect {
+      background: #dc3545;
+      border: none;
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-deselect:hover { background: #c82333; }
+
+    #infoPanel table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    #infoPanel td, #infoPanel th { padding: 5px 6px; vertical-align: top; font-size: 11px; text-align: center; border: 1px solid #dee2e6; }
+    #infoPanel td.label-col { color: #495057; font-weight: bold; text-align: left; width: 45%; border: none; padding: 4px 0; }
+    #infoPanel td.val-col { text-align: right; border: none; padding: 4px 0; color: #212529; }
 
     .vertex-editor-box {
       margin-top: 12px;
       padding-top: 10px;
-      border-top: 1px dashed rgba(255,255,255,0.2);
+      border-top: 1px dashed #dee2e6;
     }
     .vertex-row {
       display: flex;
@@ -133,52 +234,138 @@
       align-items: center;
       margin-bottom: 6px;
     }
-    .vertex-row span { font-size: 12px; color: #00D2FF; font-weight: bold; }
+    .vertex-row span { font-size: 12px; color: #007bff; font-weight: bold; }
     .vertex-input {
       width: 90px;
-      background: #111;
-      color: #fff;
-      border: 1px solid #555;
+      background: #fff;
+      color: #212529;
+      border: 1px solid #ced4da;
       padding: 4px 6px;
       border-radius: 4px;
       font-size: 12px;
       text-align: right;
     }
 
-    /* Bottom-Right Scrollable & Selectable Pipe Inventory Table */
-    #tablePanel {
+    /* Screen Slicer / Draggable Divider Bar */
+    #resizer {
       position: absolute;
-      bottom: 245px;
-      right: 20px;
-      background: rgba(20, 20, 20, 0.94);
-      color: #ffffff;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 11px;
-      z-index: 1000;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,255,255,0.2);
-      width: 440px;
-      max-height: 180px;
+      bottom: 240px;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: #007bff;
+      cursor: ns-resize;
+      z-index: 1001;
+      box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+      transition: background 0.2s;
+    }
+    #resizer:hover, #resizer.dragging {
+      background: #0056b3;
+      height: 10px;
+    }
+
+    /* Unified Bottom Split Panel (Profile Chart & Table Side-by-Side) */
+    #bottomPanel {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 240px;
+      background: rgba(248, 249, 250, 0.98);
+      z-index: 999;
+      display: flex;
+      flex-direction: row;
+      box-sizing: border-box;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+      border-top: 1px solid #dee2e6;
+      overflow: hidden;
+    }
+
+    #profileDrawer {
+      flex: 1;
+      height: 100%;
       display: flex;
       flex-direction: column;
+      padding: 6px 12px 10px 15px;
+      box-sizing: border-box;
+      border-right: 1px solid #dee2e6;
+      overflow: hidden;
     }
-    #tablePanel h4 {
-      margin: 0 0 6px 0;
-      color: #00D2FF;
-      font-size: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.15);
-      padding-bottom: 4px;
+    #profileHeader {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 4px;
     }
+    #profileHeader h4 {
+      margin: 0;
+      color: #007bff;
+      font-size: 12px;
+    }
+    #resetZoomBtn {
+      background: #e9ecef;
+      color: #495057;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+    #resetZoomBtn:hover { background: #dee2e6; }
+    #profileCanvasContainer {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Table Panel Inside Bottom Split View */
+    #tablePanel {
+      width: 48%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.97);
+      padding: 6px 12px;
+      font-size: 11px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    #tableHeaderRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 4px;
+    }
+    #tableHeaderRow h4 {
+      margin: 0;
+      color: #007bff;
+      font-size: 12px;
+    }
+    .table-actions {
+      display: flex;
+      gap: 5px;
+    }
+    .table-action-btn {
+      background: #007bff;
+      border: none;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .table-action-btn:hover { background: #0056b3; }
+
     .table-scroll-container {
       flex: 1;
       overflow-y: auto;
       overflow-x: auto;
       border-radius: 4px;
-      background: #111;
+      background: #fff;
+      border: 1px solid #dee2e6;
     }
     #pipeDataTable {
       width: 100%;
@@ -189,29 +376,46 @@
     #pipeDataTable th {
       position: sticky;
       top: 0;
-      background: #1c1c1c;
-      color: #00D2FF;
-      padding: 6px 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      background: #e9ecef;
+      color: #212529;
+      padding: 5px 6px;
+      border-bottom: 2px solid #dee2e6;
       white-space: nowrap;
       font-weight: bold;
     }
-    #pipeDataTable td {
-      padding: 5px 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      white-space: nowrap;
+    #pipeDataTable th input {
+      width: 90%;
+      background: #fff;
+      color: #212529;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      padding: 2px 4px;
+      font-size: 10px;
+      margin-top: 2px;
+      box-sizing: border-box;
     }
+    #pipeDataTable td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #dee2e6;
+      white-space: nowrap;
+      text-align: center;
+      color: #212529;
+    }
+    #pipeDataTable td:first-child { text-align: left; }
     #pipeDataTable tbody tr {
       cursor: pointer;
       transition: background 0.15s;
     }
     #pipeDataTable tbody tr:hover {
-      background: rgba(0, 210, 255, 0.2) !important;
+      background: rgba(0, 123, 255, 0.1) !important;
     }
     #pipeDataTable tbody tr.selected-row {
-      background: #008CBA !important;
+      background: #007bff !important;
       color: #ffffff !important;
       font-weight: bold;
+    }
+    #pipeDataTable tbody tr.selected-row td {
+      color: #ffffff !important;
     }
     .badge-crit {
       padding: 2px 6px;
@@ -222,72 +426,11 @@
       display: inline-block;
       text-align: center;
     }
-    .badge-red { background: #e74c3c; }
-    .badge-amber { background: #f39c12; }
-    .badge-green { background: #27ae60; }
+    .badge-red { background: #dc3545; }
+    .badge-amber { background: #fd7e14; }
+    .badge-green { background: #28a745; }
 
-    /* Screen Slicer / Draggable Divider Bar */
-    #resizer {
-      position: absolute;
-      bottom: 230px;
-      left: 0;
-      width: 100%;
-      height: 8px;
-      background: #00D2FF;
-      cursor: ns-resize;
-      z-index: 1001;
-      box-shadow: 0 0 8px rgba(0, 210, 255, 0.8);
-      transition: background 0.2s;
-    }
-    #resizer:hover, #resizer.dragging {
-      background: #33e0ff;
-      height: 10px;
-    }
-
-    /* Bottom Elevation Profile Drawer */
-    #profileDrawer {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 230px;
-      background: rgba(12, 12, 12, 0.98);
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
-      padding: 6px 20px 10px 20px;
-      box-sizing: border-box;
-      box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
-    }
-    #profileHeader {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-    }
-    #profileHeader h4 {
-      margin: 0;
-      color: #00D2FF;
-      font-size: 13px;
-    }
-    #resetZoomBtn {
-      background: #333;
-      color: #fff;
-      border: 1px solid #666;
-      border-radius: 3px;
-      padding: 2px 8px;
-      font-size: 11px;
-      cursor: pointer;
-    }
-    #resetZoomBtn:hover { background: #555; }
-    #profileCanvasContainer {
-      flex: 1;
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-
-    /* PDF Viewer Embedded Modal */
+    /* PDF Viewer Embedded Modal - Light Theme */
     #pdfModal {
       display: none;
       position: fixed;
@@ -295,31 +438,31 @@
       left: 10%;
       width: 80%;
       height: 85%;
-      background: rgba(20, 20, 20, 0.98);
-      border: 2px solid #00D2FF;
+      background: #ffffff;
+      border: 2px solid #007bff;
       border-radius: 8px;
       z-index: 2000;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
       flex-direction: column;
       overflow: hidden;
     }
     #pdfModalHeader {
       padding: 8px 15px;
-      background: #111111;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     #pdfModalTitle {
-      color: #00D2FF;
+      color: #007bff;
       font-weight: bold;
       font-size: 13px;
     }
     .pdf-ctrl-btn {
-      background: #333;
-      color: #fff;
-      border: 1px solid #555;
+      background: #e9ecef;
+      color: #495057;
+      border: 1px solid #ced4da;
       border-radius: 4px;
       padding: 4px 10px;
       font-size: 12px;
@@ -327,15 +470,15 @@
       cursor: pointer;
       margin-left: 5px;
     }
-    .pdf-ctrl-btn:hover { background: #555; }
-    .pdf-ctrl-close { background: #e74c3c; border-color: #c0392b; }
-    .pdf-ctrl-close:hover { background: #c0392b; }
+    .pdf-ctrl-btn:hover { background: #dee2e6; }
+    .pdf-ctrl-close { background: #dc3545; color: #fff; border-color: #bd2130; }
+    .pdf-ctrl-close:hover { background: #c82333; }
     #pdfFrameContainer {
       flex: 1;
       width: 100%;
       height: 100%;
       overflow: auto;
-      background: #2a2a2a;
+      background: #e9ecef;
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -353,18 +496,25 @@
 
   <div id="cesiumContainer"></div>
 
+  <!-- SVG Callout Leader Lines Overlay -->
+  <svg id="calloutSvg"></svg>
+
+  <!-- Container for Multiple Floating Pop-Out Cards -->
+  <div id="popupContainer"></div>
+
   <!-- Left Control Dashboard -->
   <div id="xrayPanel">
     <h3>Spatial Analysis Suite</h3>
     
     <div class="panel-section">
-      <h4>Subsurface / X-Ray</h4>
+      <h4>Subsurface / DTM View</h4>
+      <button id="toggleSolidEarthBtn" class="btn-tool btn-green">🌍 Toggle Solid / Opaque Earth</button>
       <button id="toggleXrayBtn" class="btn-tool">Enable Terrain Hillshade Mode</button>
       <button id="toggleBaseMapBtn" class="btn-tool btn-secondary">Hide Base Satellite Map</button>
       <button id="toggleTiffBtn" class="btn-tool btn-secondary">Hide GeoTIFF (5118488)</button>
       <div class="slider-container">
         <label for="opacitySlider">Point Cloud Overlay Opacity:</label>
-        <input type="range" id="opacitySlider" min="0.0" max="1.0" step="0.05" value="0.0" style="width: 100%;">
+        <input type="range" id="opacitySlider" min="0.0" max="1.0" step="0.01" value="1.0" style="width: 100%;">
       </div>
     </div>
 
@@ -373,29 +523,34 @@
       <button id="toggleClipBtn" class="btn-tool">Enable 3D Slice</button>
       <div class="slider-container">
         <label for="clipSlider">Slice Position:</label>
-        <input type="range" id="clipSlider" min="-100" max="100" step="1" value="0" disabled style="width: 100%;">
-      </div>
-      
-      <!-- Layer Controls for 3D Slicer Mode -->
-      <button id="toggleXrayBtn2" class="btn-tool">Enable Terrain Hillshade Mode</button>
-      <button id="toggleBaseMapBtn2" class="btn-tool btn-secondary">Hide Base Satellite Map</button>
-      <button id="toggleTiffBtn2" class="btn-tool btn-secondary">Hide GeoTIFF (5118488)</button>
-      <div class="slider-container">
-        <label for="opacitySlider2">Point Cloud Overlay Opacity:</label>
-        <input type="range" id="opacitySlider2" min="0.0" max="1.0" step="0.05" value="0.0" style="width: 100%;">
+        <input type="range" id="clipSlider" min="-100" max="100" step="0.1" value="0" disabled style="width: 100%;">
       </div>
     </div>
 
     <div class="panel-section">
+      <h4>Engineering Add-Ons</h4>
+      <button id="toggleHeatmapBtn" class="btn-tool btn-secondary">🎨 Switch to RUL Heatmap</button>
+    </div>
+
+    <div class="panel-section">
+      <h4>Layer Management</h4>
+      <input type="file" id="importGeoJsonInput" accept=".geojson,.json" style="display:none;">
+      <button id="importGeoJsonBtn" class="btn-tool btn-secondary">📂 Import Pipe GeoJSON</button>
+      <button id="drawPipeBtn" class="btn-tool btn-secondary">✏️ Draw New Pipe</button>
+    </div>
+
+    <div class="panel-section">
       <h4>Measurement & Flythrough</h4>
+      <button id="captureViewBtn" class="btn-tool btn-warn">📷 Capture & Save Current View</button>
+      <button id="predefinedViewBtn" class="btn-tool btn-green">📌 Apply Predefined View</button>
       <button id="toggleMeasureBtn" class="btn-tool">📏 3D Distance Measure</button>
       <button id="clearMeasureBtn" class="btn-tool btn-secondary">Clear Measurements</button>
-      <button id="flyThroughBtn" class="btn-tool btn-secondary">🎬 Fly-Through Corridor</button>
     </div>
 
     <div class="panel-section">
       <h4>Data Export & Reset</h4>
       <button id="exportGeoJsonBtn" class="btn-tool btn-green">💾 Save & Export GeoJSON</button>
+      <button id="exportCsvBtn" class="btn-tool btn-green">📊 Export Table to CSV</button>
       <button id="clearStorageBtn" class="btn-tool btn-warn">↺ Reset Saved Heights</button>
       <button id="resetViewBtn" class="btn-tool btn-secondary">↺ Reset Camera View</button>
     </div>
@@ -403,43 +558,58 @@
 
   <!-- Right Attribute & Inspection Panel -->
   <div id="infoPanel">
-    <h3>Pipe Attributes & Heights</h3>
-    <div id="infoContent">Select a pipe segment to view attributes.</div>
-  </div>
-
-  <!-- Bottom-Right Pipe Inventory Table -->
-  <div id="tablePanel">
-    <h4>📋 Pipe Inventory Directory <span id="tablePipeCount" style="font-size: 10px; color: #888;"></span></h4>
-    <div class="table-scroll-container">
-      <table id="pipeDataTable">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Criticality</th>
-            <th>Length</th>
-            <th>Diameter</th>
-            <th>Avg Depth</th>
-            <th>Survey Link</th>
-          </tr>
-        </thead>
-        <tbody id="pipeTableBody">
-          <!-- Populated dynamically -->
-        </tbody>
-      </table>
+    <div class="info-header-container">
+      <h3>Pipe Attributes & Heights</h3>
+      <button class="btn-deselect" onclick="deselectAllPipes()">✕ Deselect</button>
     </div>
+    <div id="infoContent">Select a pipe segment to view attributes.</div>
   </div>
 
   <!-- Screen Slicer Handle -->
   <div id="resizer"></div>
 
-  <!-- Bottom Longitudinal Profile Drawer -->
-  <div id="profileDrawer">
-    <div id="profileHeader">
-      <h4>Longitudinal Profile (DTM Ground Surface & Pipe Invert | Drag Vertices to Edit)</h4>
-      <button id="resetZoomBtn">↺ Reset Chart Zoom</button>
+  <!-- Unified Bottom Split Panel (Profile Chart & Pipe Inventory Table Side-by-Side) -->
+  <div id="bottomPanel">
+    <div id="profileDrawer">
+      <div id="profileHeader">
+        <h4>Longitudinal Profile (DTM Ground Surface & Pipe Invert | Drag Vertices to Edit)</h4>
+        <button id="resetZoomBtn">↺ Reset Chart Zoom</button>
+      </div>
+      <div id="profileCanvasContainer">
+        <canvas id="profileChart"></canvas>
+      </div>
     </div>
-    <div id="profileCanvasContainer">
-      <canvas id="profileChart"></canvas>
+
+    <div id="tablePanel">
+      <div id="tableHeaderRow">
+        <h4>📋 Pipe Inventory <span id="tablePipeCount" style="font-size: 10px; color: #6c757d;"></span></h4>
+        <div class="table-actions">
+          <button id="selectAllFilteredBtn" class="table-action-btn" title="Select all rows currently matching filters">Select Filtered</button>
+          <button id="clearTableSelectionBtn" class="table-action-btn" style="background:#6c757d;" title="Clear selection">Clear</button>
+        </div>
+      </div>
+      <div class="table-scroll-container">
+        <table id="pipeDataTable">
+          <thead>
+            <tr>
+              <th># <br><input type="text" class="column-filter" data-col="0" placeholder="Filter..."></th>
+              <th>Criticality <br><input type="text" class="column-filter" data-col="1" placeholder="Filter..."></th>
+              <th>RUL <br><input type="text" class="column-filter" data-col="2" placeholder="Filter..."></th>
+              <th>Length <br><input type="text" class="column-filter" data-col="3" placeholder="Filter..."></th>
+              <th>Diam <br><input type="text" class="column-filter" data-col="4" placeholder="Filter..."></th>
+              <th>Depth <br><input type="text" class="column-filter" data-col="5" placeholder="Filter..."></th>
+              <th>Op.Press <br><input type="text" class="column-filter" data-col="6" placeholder="Filter..."></th>
+              <th>Yield <br><input type="text" class="column-filter" data-col="7" placeholder="Filter..."></th>
+              <th>Transient <br><input type="text" class="column-filter" data-col="8" placeholder="Filter..."></th>
+              <th>Risk <br><input type="text" class="column-filter" data-col="9" placeholder="Filter..."></th>
+              <th>Survey</th>
+            </tr>
+          </thead>
+          <tbody id="pipeTableBody">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -465,7 +635,7 @@
     }
 
     let currentlySelectedEntity = null;
-    let selectedPipeIndex = -1;
+    let selectedPipeIndices = new Set();
     let createdPipeEntities = [];
     let pipeDataGlobal = [];
     let profileChartInstance = null;
@@ -477,12 +647,28 @@
     let labelFlashInterval = null;
     let chartFlashState = false; 
     let pdfScaleLevel = 1.0;
+    let pipeCorridorBoundingSphere = null;
+    let hoveredEntity = null;
 
-    // Layer display global states
-    let isXrayActive = false;
-    let isBaseMapHidden = false;
-    let isTiffHidden = false;
-    let pointCloudAlpha = 0.0;
+    // Custom draggable offsets for popup cards { pipeIndex: {x, y} }
+    const cardCustomOffsets = {};
+
+    // PREDEFINED DEFAULT STATES
+    let isSolidEarth = false;
+    let isXrayActive = true;
+    let isBaseMapHidden = true;
+    let isTiffHidden = true;
+    let pointCloudAlpha = 1.0;
+    let isHeatmapActive = false;
+
+    // DRAWING STATE VARIABLES
+    let isDrawingPipe = false;
+    let drawnPipeCartesians = [];
+    let drawPipeEntities = []; 
+
+    const PIPE_HEIGHT_OFFSET = 0.0;
+    let savedElevations = {};
+    let allPipeCartesians = [];
 
     const nodeRegistry = new Map();
 
@@ -551,43 +737,51 @@
       return positions[Math.floor(positions.length / 2)];
     }
 
+    function getPipeShape(radiusMeters) {
+        const shape = [];
+        for (let i = 0; i < 360; i += 30) {
+            const rad = Cesium.Math.toRadians(i);
+            shape.push(new Cesium.Cartesian2(radiusMeters * Math.cos(rad), radiusMeters * Math.sin(rad)));
+        }
+        return shape;
+    }
+
     function buildSpatialNodeRegistry() {
       nodeRegistry.clear();
+      const allNodes = [];
       createdPipeEntities.forEach((entity, pipeIdx) => {
         entity.cartoPositions.forEach((carto, vIdx) => {
-          const nodeKey = `${carto.longitude.toFixed(7)}_${carto.latitude.toFixed(7)}`;
-          if (!nodeRegistry.has(nodeKey)) {
-            nodeRegistry.set(nodeKey, []);
+          const cartesian = Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, carto.height);
+          allNodes.push({ pipeIndex: pipeIdx, vertexIndex: vIdx, cartesian });
+        });
+      });
+
+      const visited = new Set();
+      allNodes.forEach((nodeA, i) => {
+        if (visited.has(i)) return;
+        const group = [{ pipeIndex: nodeA.pipeIndex, vertexIndex: nodeA.vertexIndex }];
+        visited.add(i);
+
+        allNodes.forEach((nodeB, j) => {
+          if (visited.has(j)) return;
+          const dist = Cesium.Cartesian3.distance(nodeA.cartesian, nodeB.cartesian);
+          if (dist <= 0.5) {
+            group.push({ pipeIndex: nodeB.pipeIndex, vertexIndex: nodeB.vertexIndex });
+            visited.add(j);
           }
-          nodeRegistry.get(nodeKey).push({ pipeIndex: pipeIdx, vertexIndex: vIdx });
+        });
+
+        group.forEach(n => {
+          const key = `${n.pipeIndex}_${n.vertexIndex}`;
+          nodeRegistry.set(key, group);
         });
       });
     }
 
-    // CENTRALIZED SELECTION HANDLER
-    function selectPipe(pipeIndex, sourceTrigger = '') {
-      if (pipeIndex === undefined || pipeIndex < 0 || pipeIndex >= createdPipeEntities.length) return;
-      selectedPipeIndex = pipeIndex;
+    function deselectAllPipes() {
+      selectedPipeIndices.clear();
+      currentlySelectedEntity = null;
 
-      const targetEntity = createdPipeEntities[pipeIndex];
-
-      if (viewerInstance) {
-        viewerInstance.selectedEntity = undefined;
-      }
-
-      // 1. HIGHLIGHT & CENTER TABLE ROW
-      const tableBody = document.getElementById('pipeTableBody');
-      const rows = tableBody.querySelectorAll('tr');
-      rows.forEach((row, idx) => {
-        if (idx === pipeIndex) {
-          row.classList.add('selected-row');
-          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-          row.classList.remove('selected-row');
-        }
-      });
-
-      // 2. CLEAR PREVIOUS FLASH INTERVAL & RESET ALL LABELS AND MATERIALS
       if (labelFlashInterval) {
         clearInterval(labelFlashInterval);
         labelFlashInterval = null;
@@ -595,119 +789,347 @@
       chartFlashState = false;
 
       createdPipeEntities.forEach((entity) => {
-        const baseColor = entity.baseColor || Cesium.Color.GREEN;
-        entity.polylineVolume.material = baseColor.withAlpha(0.95);
-
-        if (entity.label) {
-          entity.label.fillColor = Cesium.Color.WHITE;
-          entity.label.outlineColor = Cesium.Color.BLACK;
-          entity.label.font = 'bold 15px Arial';
-          entity.label.scale = 1.0;
-        }
+        const color = isHeatmapActive ? (entity.rulColor || Cesium.Color.BLUE) : (entity.baseColor || Cesium.Color.GREEN);
+        entity.polylineVolume.material = color.withAlpha(0.95);
       });
 
-      // 3. FLASH BOTH 3D GLOBE LABEL AND CROSS-SECTION DATALABEL
-      if (targetEntity && targetEntity.label) {
-        targetEntity.label.font = 'bold 22px Arial';
+      const rows = document.querySelectorAll('#pipeTableBody tr');
+      rows.forEach(row => row.classList.remove('selected-row'));
 
-        labelFlashInterval = setInterval(() => {
-          chartFlashState = !chartFlashState;
-
-          targetEntity.label.fillColor = chartFlashState ? Cesium.Color.YELLOW : Cesium.Color.RED;
-          targetEntity.label.scale = chartFlashState ? 1.5 : 1.0;
-
-          if (profileChartInstance) {
-            profileChartInstance.update('none');
-          }
-        }, 300);
-      }
-
-      if (sourceTrigger !== '3d' && targetEntity) {
-        viewerInstance.flyTo(targetEntity, { duration: 1.2 });
-      }
-
-      openInfoPanelForEntity(targetEntity);
+      document.getElementById('infoPanel').style.display = 'none';
 
       if (profileChartInstance) {
         profileChartInstance.update('none');
       }
     }
 
-    // UNIFIED MAP & LAYER DISPLAY STATE HANDLER
+    function scrollToSelectedRow(pipeIndex) {
+      const row = document.querySelector(`#pipeTableBody tr[data-pipe-index="${pipeIndex}"]`);
+      if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function selectPipe(pipeIndex, isMultiSelect, sourceTrigger = '') {
+      if (pipeIndex === undefined || pipeIndex < 0 || pipeIndex >= createdPipeEntities.length) return;
+
+      if (isMultiSelect) {
+        if (selectedPipeIndices.has(pipeIndex)) {
+          selectedPipeIndices.delete(pipeIndex);
+        } else {
+          selectedPipeIndices.add(pipeIndex);
+        }
+      } else {
+        selectedPipeIndices.clear();
+        selectedPipeIndices.add(pipeIndex);
+      }
+
+      applySelectionVisuals();
+      scrollToSelectedRow(pipeIndex);
+
+      if (sourceTrigger !== '3d' && selectedPipeIndices.size === 1) {
+        const targetEntity = createdPipeEntities[pipeIndex];
+        if (targetEntity) {
+          viewerInstance.flyTo(targetEntity, { duration: 1.2 });
+          openInfoPanelForEntity(targetEntity);
+        }
+      } else if (selectedPipeIndices.size === 1) {
+        const targetEntity = createdPipeEntities[pipeIndex];
+        if (targetEntity) openInfoPanelForEntity(targetEntity);
+      } else {
+        document.getElementById('infoPanel').style.display = 'none';
+      }
+
+      if (profileChartInstance) {
+        profileChartInstance.update('none');
+      }
+    }
+
+    function applySelectionVisuals() {
+      const rows = document.querySelectorAll('#pipeTableBody tr');
+      rows.forEach(row => {
+        const pIdx = parseInt(row.getAttribute('data-pipe-index'));
+        if (selectedPipeIndices.has(pIdx)) {
+          row.classList.add('selected-row');
+        } else {
+          row.classList.remove('selected-row');
+        }
+      });
+
+      if (!labelFlashInterval && selectedPipeIndices.size > 0) {
+        labelFlashInterval = setInterval(() => {
+          chartFlashState = !chartFlashState;
+          
+          createdPipeEntities.forEach((entity, idx) => {
+            const baseColor = isHeatmapActive ? (entity.rulColor || Cesium.Color.BLUE) : (entity.baseColor || Cesium.Color.GREEN);
+            if (selectedPipeIndices.has(idx)) {
+              entity.polylineVolume.material = chartFlashState ? Cesium.Color.YELLOW.withAlpha(0.95) : baseColor.withAlpha(0.95);
+            } else {
+              entity.polylineVolume.material = baseColor.withAlpha(0.95);
+            }
+          });
+
+          if (profileChartInstance) {
+            profileChartInstance.update('none');
+          }
+        }, 650);
+      } else if (selectedPipeIndices.size === 0 && labelFlashInterval) {
+        clearInterval(labelFlashInterval);
+        labelFlashInterval = null;
+        chartFlashState = false;
+      }
+
+      createdPipeEntities.forEach((entity, idx) => {
+        const baseColor = isHeatmapActive ? (entity.rulColor || Cesium.Color.BLUE) : (entity.baseColor || Cesium.Color.GREEN);
+        if (selectedPipeIndices.has(idx)) {
+          entity.polylineVolume.material = chartFlashState ? Cesium.Color.YELLOW.withAlpha(0.95) : baseColor.withAlpha(0.95);
+        } else {
+          entity.polylineVolume.material = baseColor.withAlpha(0.95);
+        }
+      });
+
+      if (profileChartInstance) {
+        profileChartInstance.update('none');
+      }
+    }
+
     function updateDisplayState() {
       if (!viewerInstance) return;
 
-      const lightBrown = Cesium.Color.fromCssColorString('#C4A484'); // Light Brown
+      const lightBrown = Cesium.Color.fromCssColorString('#C4A484');
       viewerInstance.scene.globe.baseColor = lightBrown;
-      viewerInstance.scene.globe.undergroundColor = Cesium.Color.fromCssColorString('#8B7355'); // Darker brown
+      viewerInstance.scene.globe.undergroundColor = Cesium.Color.fromCssColorString('#8B7355');
 
-      // 1. Globe Hillshade Mode
+      viewerInstance.scene.globe.translucency.enabled = !isSolidEarth;
+      viewerInstance.scene.globe.translucency.frontFaceAlpha = isSolidEarth ? 1.0 : 0.5;
+
       viewerInstance.scene.globe.enableLighting = isXrayActive;
       viewerInstance.scene.globe.dynamicAtmosphereLighting = !isXrayActive;
       viewerInstance.scene.globe.showGroundAtmosphere = !isXrayActive;
-      viewerInstance.scene.globe.translucency.frontFaceAlpha = isXrayActive ? 0.65 : 0.5;
 
-      // 2. Base Satellite Imagery Toggle
       if (viewerInstance.imageryLayers.length > 0) {
         const baseLayer = viewerInstance.imageryLayers.get(0);
         if (baseLayer) baseLayer.show = !isBaseMapHidden;
       }
 
-      // 3. GeoTIFF Layer Toggle
       if (tiffLayer) {
         tiffLayer.show = !isTiffHidden;
       }
 
-      // 4. Point Cloud Opacity - Re-applies native point colors while keeping opacity linked to slider
       if (pointCloudTileset) {
-        if (pointCloudAlpha <= 0.01) {
-          pointCloudTileset.show = false;
-        } else {
-          pointCloudTileset.show = true;
-          pointCloudTileset.style = new Cesium.Cesium3DTileStyle({
-            color: `vec4(\${COLOR}.r, \${COLOR}.g, \${COLOR}.b, ${pointCloudAlpha})`,
-            pointSize: 2.5
-          });
-        }
+        pointCloudTileset.show = true;
+        pointCloudTileset.style = new Cesium.Cesium3DTileStyle({
+          color: `\${COLOR} * color('white', ${pointCloudAlpha})`,
+          pointSize: 2.5
+        });
       }
 
       syncUIControls();
     }
 
     function syncUIControls() {
+      const solidBtn = document.getElementById('toggleSolidEarthBtn');
+      if (solidBtn) {
+        solidBtn.textContent = isSolidEarth ? '🌍 Translucent X-Ray Mode (Active)' : '🌍 Toggle Solid / Opaque Earth';
+        solidBtn.classList.toggle('active', isSolidEarth);
+      }
+
       const xrayText = isXrayActive ? 'Disable Terrain Hillshade' : 'Enable Terrain Hillshade Mode';
-      ['toggleXrayBtn', 'toggleXrayBtn2'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-          btn.textContent = xrayText;
-          btn.classList.toggle('active', isXrayActive);
-        }
-      });
+      const xrayBtn = document.getElementById('toggleXrayBtn');
+      if (xrayBtn) {
+        xrayBtn.textContent = xrayText;
+        xrayBtn.classList.toggle('active', isXrayActive);
+      }
 
       const baseText = isBaseMapHidden ? 'Show Base Satellite Map' : 'Hide Base Satellite Map';
-      ['toggleBaseMapBtn', 'toggleBaseMapBtn2'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-          btn.textContent = baseText;
-          btn.classList.toggle('active', isBaseMapHidden);
-        }
-      });
+      const baseBtn = document.getElementById('toggleBaseMapBtn');
+      if (baseBtn) {
+        baseBtn.textContent = baseText;
+        baseBtn.classList.toggle('active', isBaseMapHidden);
+      }
 
       const tiffText = isTiffHidden ? 'Show GeoTIFF (5118488)' : 'Hide GeoTIFF (5118488)';
-      ['toggleTiffBtn', 'toggleTiffBtn2'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-          btn.textContent = tiffText;
-          btn.classList.toggle('active', isTiffHidden);
-        }
-      });
+      const tiffBtn = document.getElementById('toggleTiffBtn');
+      if (tiffBtn) {
+        tiffBtn.textContent = tiffText;
+        tiffBtn.classList.toggle('active', isTiffHidden);
+      }
 
-      ['opacitySlider', 'opacitySlider2'].forEach(id => {
-        const slider = document.getElementById(id);
-        if (slider) {
-          slider.value = pointCloudAlpha;
+      const opacitySlider = document.getElementById('opacitySlider');
+      if (opacitySlider) {
+        opacitySlider.value = pointCloudAlpha;
+      }
+    }
+
+    function captureCurrentView() {
+      if (!viewerInstance) return;
+      const cam = viewerInstance.camera;
+      const carto = Cesium.Cartographic.fromCartesian(cam.position);
+      const viewData = {
+        longitude: carto.longitude,
+        latitude: carto.latitude,
+        height: carto.height,
+        heading: cam.heading,
+        pitch: cam.pitch,
+        roll: cam.roll
+      };
+      localStorage.setItem('user_saved_predefined_view', JSON.stringify(viewData));
+      alert('📷 Current camera view captured and saved successfully!');
+    }
+
+    function applyPredefinedView() {
+      if (!viewerInstance) return;
+      isSolidEarth = false;
+      isXrayActive = true;
+      isBaseMapHidden = true;
+      isTiffHidden = true;
+      pointCloudAlpha = 1.0;
+      updateDisplayState();
+
+      const savedViewStr = localStorage.getItem('user_saved_predefined_view');
+      if (savedViewStr) {
+        try {
+          const v = JSON.parse(savedViewStr);
+          viewerInstance.camera.flyTo({
+            destination: Cesium.Cartesian3.fromRadians(v.longitude, v.latitude, v.height),
+            orientation: {
+              heading: v.heading,
+              pitch: v.pitch,
+              roll: v.roll
+            },
+            duration: 1.2
+          });
+          return;
+        } catch(e) {
+          console.warn("Failed to parse saved view", e);
         }
-      });
+      }
+
+      if (pipeCorridorBoundingSphere) {
+        viewerInstance.camera.flyToBoundingSphere(pipeCorridorBoundingSphere, {
+            duration: 1.5,
+            offset: new Cesium.HeadingPitchRange(
+                Cesium.Math.toRadians(15), 
+                Cesium.Math.toRadians(-62), 
+                pipeCorridorBoundingSphere.radius * 0.55
+            )
+        });
+      }
+    }
+
+    function addPipeToSystem(cartoPositions, rawProps) {
+        const pipeIdx = createdPipeEntities.length;
+        const correctedPositions = cartoPositions.map(carto => {
+            const pt = Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, carto.height);
+            allPipeCartesians.push(pt);
+            return pt;
+        });
+
+        const labelPosition = calculatePolylineMidpoint(correctedPositions);
+
+        let color = Cesium.Color.GREEN;
+        let rulColor = Cesium.Color.GREEN;
+        let rulYears = 25;
+        
+        const cesiumProps = new Cesium.PropertyBag(rawProps);
+        const orderVal = rawProps.order ?? rawProps.Order ?? rawProps.ORDER ?? (pipeIdx + 1);
+        let orderText = String(orderVal);
+
+        if (orderText === '9' && !rawProps.survey && !rawProps.Survey && !rawProps.SURVEY) {
+            cesiumProps.addProperty('survey', 'https://drive.google.com/file/d/1iY7HtZVdWbep3_JWxAh9oeSaDJIgCsGL/view?usp=drive_link');
+        }
+
+        const crit = String(rawProps.Criticality || rawProps.criticality || rawProps.CRITICALITY || rawProps.crit || '').trim().toLowerCase();
+        if (crit.includes('red') || crit.includes('high') || crit === '3') {
+            color = Cesium.Color.RED;
+            rulYears = 3;
+            rulColor = Cesium.Color.RED;
+        } else if (crit.includes('amber') || crit.includes('med') || crit.includes('orange') || crit === '2') {
+            color = Cesium.Color.ORANGE;
+            rulYears = 10;
+            rulColor = Cesium.Color.ORANGE;
+        } else {
+            color = Cesium.Color.GREEN;
+            rulYears = 25;
+            rulColor = Cesium.Color.GREEN;
+        }
+
+        if (!cesiumProps.hasProperty('RUL_Years')) cesiumProps.addProperty('RUL_Years', rulYears);
+
+        if (!cesiumProps.hasProperty('Current_Operating_Pressure')) {
+            cesiumProps.addProperty('Current_Operating_Pressure', (15 + Math.random() * 4).toFixed(1));
+        }
+        if (!cesiumProps.hasProperty('Yield_Pressure')) {
+            cesiumProps.addProperty('Yield_Pressure', (18 + Math.random() * 5).toFixed(1));
+        }
+        if (!cesiumProps.hasProperty('Transient_Score')) {
+            cesiumProps.addProperty('Transient_Score', Math.floor(3 + Math.random() * 5));
+        }
+        if (!cesiumProps.hasProperty('Remaining_Service_Life')) {
+            cesiumProps.addProperty('Remaining_Service_Life', rulYears);
+        }
+        if (!cesiumProps.hasProperty('Likelihood_of_Failure')) {
+            cesiumProps.addProperty('Likelihood_of_Failure', rulYears < 5 ? Math.floor(7 + Math.random() * 3) : (rulYears < 15 ? Math.floor(4 + Math.random() * 3) : Math.floor(1 + Math.random() * 3)));
+        }
+
+        let diamStr = String(rawProps.Diameter || rawProps.diameter || rawProps.DIAMETER || '0.8').replace('m','').trim();
+        let diamFloat = parseFloat(diamStr);
+        if(isNaN(diamFloat) || diamFloat <= 0) diamFloat = 0.8;
+        
+        if (!cesiumProps.hasProperty('Diameter')) cesiumProps.addProperty('Diameter', `${diamFloat}m`);
+        const dynamicPipeShape = getPipeShape(diamFloat / 2.0);
+
+        const pipeEntity = viewerInstance.entities.add({
+            name: '3D Water Pipe',
+            position: labelPosition,
+            properties: cesiumProps,
+            polylineVolume: {
+                positions: correctedPositions,
+                shape: dynamicPipeShape,
+                material: color.withAlpha(0.95),
+                cornerType: Cesium.CornerType.ROUNDED
+            },
+            label: {
+                text: orderText !== '' ? orderText : '0',
+                font: 'bold 15px Arial',
+                fillColor: Cesium.Color.WHITE,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 4,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                verticalOrigin: Cesium.VerticalOrigin.CENTER,
+                horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+                pixelOffset: new Cesium.Cartesian2(0, 0),
+                disableDepthTestDistance: Number.POSITIVE_INFINITY
+            }
+        });
+
+        pipeEntity.cartoPositions = cartoPositions;
+        pipeEntity.baseColor = color;
+        pipeEntity.rulColor = rulColor;
+        pipeEntity.rulYears = rulYears;
+        createdPipeEntities.push(pipeEntity);
+    }
+
+    function processRawEntities(rawEntities) {
+        for (let i = 0; i < rawEntities.length; i++) {
+            const rawEntity = rawEntities[i];
+            if (rawEntity.polyline) {
+                const rawPositions = rawEntity.polyline.positions.getValue(Cesium.JulianDate.now());
+                const cartoPositions = rawPositions.map((cartesian, vIdx) => {
+                    const carto = Cesium.Cartographic.fromCartesian(cartesian);
+                    const savedKey = `${createdPipeEntities.length}_${vIdx}`;
+                    if (savedElevations[savedKey] !== undefined) {
+                        carto.height = savedElevations[savedKey];
+                    } else {
+                        carto.height += PIPE_HEIGHT_OFFSET;
+                    }
+                    return carto;
+                });
+                
+                const props = rawEntity.properties ? rawEntity.properties.getValue(Cesium.JulianDate.now()) : {};
+                addPipeToSystem(cartoPositions, props);
+            }
+        }
     }
 
     async function initApp() {
@@ -725,8 +1147,10 @@
         });
         viewerInstance = viewer;
 
-        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#C4A484'); // Light Brown
-        viewer.scene.globe.undergroundColor = Cesium.Color.fromCssColorString('#8B7355'); // Darker Brown
+        viewer.scene.screenSpaceCameraController.minimumZoomDistance = 1.0;
+        viewer.scene.screenSpaceCameraController.maximumZoomDistance = 800.0;
+        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#C4A484');
+        viewer.scene.globe.undergroundColor = Cesium.Color.fromCssColorString('#8B7355');
 
         const tiffProvider = await Cesium.IonImageryProvider.fromAssetId(5118488);
         tiffLayer = viewer.imageryLayers.addImageryProvider(tiffProvider);
@@ -750,106 +1174,33 @@
         });
         pointCloudTileset.clippingPlanes = clippingPlanes;
 
-        function getPipeShape(radiusMeters) {
-            const shape = [];
-            for (let i = 0; i < 360; i += 30) {
-                const rad = Cesium.Math.toRadians(i);
-                shape.push(new Cesium.Cartesian2(radiusMeters * Math.cos(rad), radiusMeters * Math.sin(rad)));
+        try {
+            if (pointCloudTileset.boundingSphere) {
+                const radius = pointCloudTileset.boundingSphere.radius;
+                const clipSlider = document.getElementById('clipSlider');
+                clipSlider.min = -radius;
+                clipSlider.max = radius;
+                clipSlider.step = radius / 500;
+                clipSlider.value = 0;
+                clipPlane.distance = 0;
             }
-            return shape;
+        } catch(err) {
+            console.warn("Bounding sphere not immediately available.", err);
         }
 
-        const pipeProfile = getPipeShape(0.4);
+        savedElevations = JSON.parse(localStorage.getItem('pipe_height_edits') || '{}');
 
         const pipeSource = await Cesium.GeoJsonDataSource.load('Pipe WGS84.geojson');
-        const rawEntities = pipeSource.entities.values;
-        const PIPE_HEIGHT_OFFSET = 0.0; 
-
-        const savedElevations = JSON.parse(localStorage.getItem('pipe_height_edits') || '{}');
-        const walkthroughPositions = [];
-
-        for (let i = 0; i < rawEntities.length; i++) {
-            const rawEntity = rawEntities[i];
-
-            if (rawEntity.polyline) {
-                const rawPositions = rawEntity.polyline.positions.getValue(Cesium.JulianDate.now());
-
-                const cartoPositions = rawPositions.map((cartesian, vIdx) => {
-                    const carto = Cesium.Cartographic.fromCartesian(cartesian);
-                    const savedKey = `${i}_${vIdx}`;
-                    if (savedElevations[savedKey] !== undefined) {
-                        carto.height = savedElevations[savedKey];
-                    } else {
-                        carto.height += PIPE_HEIGHT_OFFSET;
-                    }
-                    return carto;
-                });
-
-                const correctedPositions = cartoPositions.map(carto => 
-                    Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, carto.height)
-                );
-
-                correctedPositions.forEach(pt => walkthroughPositions.push(pt));
-
-                const labelPosition = calculatePolylineMidpoint(correctedPositions);
-
-                let color = Cesium.Color.GREEN;
-                let orderText = '';
-
-                if (rawEntity.properties) {
-                    const props = rawEntity.properties.getValue(Cesium.JulianDate.now());
-                    const orderVal = props.order ?? props.Order ?? props.ORDER ?? '';
-                    orderText = String(orderVal);
-
-                    if (orderText === '9' && !props.survey && !props.Survey && !props.SURVEY) {
-                        rawEntity.properties.addProperty('survey', 'https://drive.google.com/file/d/1iY7HtZVdWbep3_JWxAh9oeSaDJIgCsGL/view?usp=drive_link');
-                    }
-
-                    const crit = String(
-                        props.Criticality || props.criticality || props.CRITICALITY || props.crit || ''
-                    ).trim().toLowerCase();
-
-                    if (crit.includes('red') || crit.includes('high') || crit === '3') {
-                        color = Cesium.Color.RED;
-                    } else if (crit.includes('amber') || crit.includes('med') || crit.includes('orange') || crit === '2') {
-                        color = Cesium.Color.ORANGE;
-                    } else if (crit.includes('green') || crit.includes('low') || crit === '1') {
-                        color = Cesium.Color.GREEN;
-                    }
-                }
-
-                const pipeEntity = viewer.entities.add({
-                    name: '3D Water Pipe',
-                    position: labelPosition,
-                    properties: rawEntity.properties,
-                    polylineVolume: {
-                        positions: correctedPositions,
-                        shape: pipeProfile,
-                        material: color.withAlpha(0.95),
-                        cornerType: Cesium.CornerType.ROUNDED
-                    },
-                    label: {
-                        text: orderText !== '' ? orderText : '0',
-                        font: 'bold 15px Arial',
-                        fillColor: Cesium.Color.WHITE,
-                        outlineColor: Cesium.Color.BLACK,
-                        outlineWidth: 4,
-                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                        verticalOrigin: Cesium.VerticalOrigin.CENTER,
-                        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-                        pixelOffset: new Cesium.Cartesian2(0, 0),
-                        disableDepthTestDistance: Number.POSITIVE_INFINITY
-                    }
-                });
-
-                pipeEntity.cartoPositions = cartoPositions;
-                pipeEntity.baseColor = color;
-                createdPipeEntities.push(pipeEntity);
-            }
-        }
+        processRawEntities(pipeSource.entities.values);
 
         buildSpatialNodeRegistry();
-        viewer.flyTo(pointCloudTileset, { duration: 2.0 });
+
+        if (allPipeCartesians.length > 0) {
+            pipeCorridorBoundingSphere = Cesium.BoundingSphere.fromPoints(allPipeCartesians);
+        }
+
+        updateDisplayState();
+        applyPredefinedView();
 
         function saveHeightsToLocalStorage() {
             const store = {};
@@ -873,12 +1224,8 @@
             const item = pipeDataGlobal[dataIndex];
             if (!item) return;
 
-            const targetEntity = createdPipeEntities[item.pipeIndex];
-            if (!targetEntity || !targetEntity.cartoPositions[item.vertexIndex]) return;
-
-            const targetCarto = targetEntity.cartoPositions[item.vertexIndex];
-            const nodeKey = `${targetCarto.longitude.toFixed(7)}_${targetCarto.latitude.toFixed(7)}`;
-            const connectedNodes = nodeRegistry.get(nodeKey) || [{ pipeIndex: item.pipeIndex, vertexIndex: item.vertexIndex }];
+            const targetKey = `${item.pipeIndex}_${item.vertexIndex}`;
+            const connectedNodes = nodeRegistry.get(targetKey) || [{ pipeIndex: item.pipeIndex, vertexIndex: item.vertexIndex }];
 
             connectedNodes.forEach(node => {
                 const ent = createdPipeEntities[node.pipeIndex];
@@ -904,25 +1251,47 @@
             
             let surveyDisplay = surveyVal;
             if (String(surveyVal).startsWith('http')) {
-                surveyDisplay = `<button onclick="openPdfViewer('${surveyVal}')" style="background:none; border:none; color:#00D2FF; text-decoration:underline; font-weight:bold; cursor:pointer; padding:0; font-size:12px;">Open PDF Document ↗</button>`;
+                surveyDisplay = `<button onclick="openPdfViewer('${surveyVal}')" style="background:none; border:none; color:#007bff; text-decoration:underline; font-weight:bold; cursor:pointer; padding:0; font-size:12px;">Open PDF Document ↗</button>`;
             }
 
-            let tableHtml = '<table>';
-            tableHtml += `<tr><td class="label-col">Survey:</td><td>${surveyDisplay}</td></tr>`;
+            let tableHtml = `
+                <table class="health-table">
+                    <tr>
+                      <th colspan="5">Operational Health</th>
+                    </tr>
+                    <tr>
+                      <th>Current Operating Pressure (Bar)</th>
+                      <th>Yield Pressure (Bar (as tested))</th>
+                      <th>Transient Score</th>
+                      <th>Remaining Service Life (yrs)</th>
+                      <th>Likelihood of Failure</th>
+                    </tr>
+                    <tr>
+                      <td>${props.Current_Operating_Pressure || '17.6'}</td>
+                      <td>${props.Yield_Pressure || '19'}</td>
+                      <td>${props.Transient_Score || '5'}</td>
+                      <td>${props.Remaining_Service_Life || entity.rulYears || '25'}</td>
+                      <td>${props.Likelihood_of_Failure || '5'}</td>
+                    </tr>
+                </table>
+                <table style="margin-top:10px;">`;
+
+            tableHtml += `<tr><td class="label-col">Remaining Life:</td><td class="val-col"><strong style="color:${entity.rulYears < 5 ? '#dc3545' : (entity.rulYears < 15 ? '#fd7e14' : '#28a745')};">${entity.rulYears} Years</strong></td></tr>`;
+            tableHtml += `<tr><td class="label-col">Survey:</td><td class="val-col">${surveyDisplay}</td></tr>`;
 
             for (const [key, value] of Object.entries(props)) {
-                if (['survey', 'Survey', 'SURVEY'].includes(key)) continue;
+                if (['survey', 'Survey', 'SURVEY', 'RUL_Years', 'Current_Operating_Pressure', 'Yield_Pressure', 'Transient_Score', 'Remaining_Service_Life', 'Likelihood_of_Failure'].includes(key)) continue;
                 let valDisplay = value !== null && value !== undefined ? value : '';
                 if (String(valDisplay).startsWith('http')) {
-                    valDisplay = `<button onclick="openPdfViewer('${valDisplay}')" style="background:none; border:none; color:#00D2FF; text-decoration:underline; cursor:pointer; padding:0; font-size:12px;">View Document ↗</button>`;
+                    valDisplay = `<button onclick="openPdfViewer('${valDisplay}')" style="background:none; border:none; color:#007bff; text-decoration:underline; cursor:pointer; padding:0; font-size:12px;">View Document ↗</button>`;
                 }
-                tableHtml += `<tr><td class="label-col">${key}:</td><td>${valDisplay}</td></tr>`;
+                tableHtml += `<tr><td class="label-col">${key}:</td><td class="val-col">${valDisplay}</td></tr>`;
             }
             tableHtml += '</table>';
 
             if (entity.cartoPositions) {
                 tableHtml += `<div class="vertex-editor-box">
-                    <h4 style="margin: 0 0 8px 0; color: #00D2FF; font-size: 13px;">Edit Vertex Heights (Meters):</h4>`;
+                    <h4 style="margin: 0 0 8px 0; color: #007bff; font-size: 13px;">Edit Vertex Heights (Meters):</h4>`;
                 
                 entity.cartoPositions.forEach((carto, idx) => {
                     const hVal = carto.height.toFixed(2);
@@ -936,11 +1305,11 @@
             }
 
             tableHtml += `
-                <div style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 10px;">
-                    <h4 style="margin: 0 0 8px 0; color: #00D2FF; font-size: 13px;">Attach Inspection Photo:</h4>
-                    <input type="file" id="photoLoader" accept="image/*" style="font-size: 11px; color: #ccc; margin-bottom: 8px; width: 100%;">
+                <div style="margin-top: 15px; border-top: 1px dashed #dee2e6; padding-top: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: #007bff; font-size: 13px;">Attach Inspection Photo:</h4>
+                    <input type="file" id="photoLoader" accept="image/*" style="font-size: 11px; color: #495057; margin-bottom: 8px; width: 100%;">
                     <div id="photoPreviewContainer">
-                        ${entity.attachedPhoto ? `<img src="${entity.attachedPhoto}" style="width:100%; border-radius:4px; border:1px solid #00D2FF;">` : '<span style="color:#888; font-size:11px;">No photo attached.</span>'}
+                        ${entity.attachedPhoto ? `<img src="${entity.attachedPhoto}" style="width:100%; border-radius:4px; border:1px solid #007bff;">` : '<span style="color:#6c757d; font-size:11px;">No photo attached.</span>'}
                     </div>
                 </div>`;
 
@@ -956,7 +1325,7 @@
                     const imageUrl = URL.createObjectURL(file);
                     entity.attachedPhoto = imageUrl;
                     document.getElementById('photoPreviewContainer').innerHTML = 
-                        `<img src="${imageUrl}" style="width:100%; border-radius:4px; border:1px solid #00D2FF;">`;
+                        `<img src="${imageUrl}" style="width:100%; border-radius:4px; border:1px solid #007bff;">`;
                 }
             });
 
@@ -998,6 +1367,11 @@
                 if (critLower.includes('red') || critLower.includes('high') || critLower === '3') badgeClass = 'badge-red';
                 else if (critLower.includes('amber') || critLower.includes('med') || critLower.includes('orange') || critLower === '2') badgeClass = 'badge-amber';
 
+                const rulYrs = entity.rulYears || 25;
+                let rulBadgeClass = 'badge-green';
+                if (rulYrs < 5) rulBadgeClass = 'badge-red';
+                else if (rulYrs < 15) rulBadgeClass = 'badge-amber';
+
                 let segLen = 0;
                 const cPos = entity.cartoPositions;
                 for (let j = 0; j < cPos.length - 1; j++) {
@@ -1015,51 +1389,111 @@
                     avgDepth = `${(sumD / pipePoints.length).toFixed(2)}m`;
                 }
 
+                const opPress = props.Current_Operating_Pressure || '17.6';
+                const yieldPress = props.Yield_Pressure || '19';
+                const transient = props.Transient_Score || '5';
+                const failRisk = props.Likelihood_of_Failure || '5';
+
                 const surveyUrl = props.survey ?? props.Survey ?? props.SURVEY ?? '';
-                let surveyBtn = '<span style="color:#666;">N/A</span>';
+                let surveyBtn = '<span style="color:#adb5bd;">N/A</span>';
                 if (String(surveyUrl).startsWith('http')) {
-                    surveyBtn = `<button onclick="event.stopPropagation(); openPdfViewer('${surveyUrl}')" style="background:#008CBA; border:none; color:#fff; padding:2px 6px; border-radius:3px; cursor:pointer; font-size:10px;">PDF ↗</button>`;
+                    surveyBtn = `<button onclick="event.stopPropagation(); openPdfViewer('${surveyUrl}')" style="background:#007bff; border:none; color:#fff; padding:2px 6px; border-radius:3px; cursor:pointer; font-size:10px;">PDF ↗</button>`;
                 }
 
                 const row = document.createElement('tr');
                 row.setAttribute('data-pipe-index', pipeIdx);
-                if (pipeIdx === selectedPipeIndex) row.classList.add('selected-row');
+                if (selectedPipeIndices.has(pipeIdx)) row.classList.add('selected-row');
 
                 row.innerHTML = `
                     <td><strong>Pipe ${orderVal}</strong></td>
                     <td><span class="badge-crit ${badgeClass}">${crit}</span></td>
+                    <td><span class="badge-crit ${rulBadgeClass}">${rulYrs} Yrs</span></td>
                     <td>${segLen.toFixed(1)}m</td>
                     <td>${diameter}</td>
                     <td>${avgDepth}</td>
+                    <td>${opPress}</td>
+                    <td>${yieldPress}</td>
+                    <td>${transient}</td>
+                    <td>${failRisk}</td>
                     <td>${surveyBtn}</td>
                 `;
 
-                row.addEventListener('click', () => {
-                    selectPipe(pipeIdx, 'table');
+                row.addEventListener('click', (e) => {
+                    selectPipe(pipeIdx, e.ctrlKey || e.metaKey, 'table');
                 });
 
                 tableBody.appendChild(row);
             });
+            
+            applyColumnFilters();
         }
+
+        function applyColumnFilters() {
+            const filterInputs = document.querySelectorAll('.column-filter');
+            const filters = {};
+            filterInputs.forEach(inp => {
+                const colIdx = parseInt(inp.getAttribute('data-col'));
+                filters[colIdx] = inp.value.toLowerCase().trim();
+            });
+
+            const rows = document.querySelectorAll('#pipeTableBody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let showRow = true;
+                for (const [colIdx, filterVal] of Object.entries(filters)) {
+                    if (filterVal !== '') {
+                        const cellText = cells[colIdx].textContent.toLowerCase();
+                        if (!cellText.includes(filterVal)) {
+                            showRow = false;
+                            break;
+                        }
+                    }
+                }
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+
+        document.querySelectorAll('.column-filter').forEach(inp => {
+            inp.addEventListener('input', applyColumnFilters);
+            inp.addEventListener('click', (e) => e.stopPropagation());
+        });
+
+        document.getElementById('selectAllFilteredBtn').addEventListener('click', () => {
+            const rows = document.querySelectorAll('#pipeTableBody tr');
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const pIdx = parseInt(row.getAttribute('data-pipe-index'));
+                    selectedPipeIndices.add(pIdx);
+                }
+            });
+            applySelectionVisuals();
+        });
+
+        document.getElementById('clearTableSelectionBtn').addEventListener('click', () => {
+            deselectAllPipes();
+        });
 
         async function updateProfileChart() {
             pipeDataGlobal = [];
             const denseSamplePoints = [];
             let cumulativeChainage = 0;
-
-            const STEP_DISTANCE_METERS = 0.4; // High-resolution step along corridor
+            const STEP_DISTANCE_METERS = 0.4;
 
             createdPipeEntities.forEach((entity, pipeIdx) => {
                 const cPos = entity.cartoPositions;
                 const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
                 const orderVal = String(props.order ?? props.Order ?? props.ORDER ?? pipeIdx);
 
-                let hexColor = '#27ae60';
+                let hexColor = isHeatmapActive ? '#007bff' : '#28a745';
                 const crit = String(props.Criticality || props.criticality || props.CRITICALITY || props.crit || '').trim().toLowerCase();
-                if (crit.includes('red') || crit.includes('high') || crit === '3') {
-                    hexColor = '#e74c3c';
-                } else if (crit.includes('amber') || crit.includes('med') || crit.includes('orange') || crit === '2') {
-                    hexColor = '#f39c12';
+                
+                if (!isHeatmapActive) {
+                    if (crit.includes('red') || crit.includes('high') || crit === '3') hexColor = '#dc3545';
+                    else if (crit.includes('amber') || crit.includes('med') || crit.includes('orange') || crit === '2') hexColor = '#fd7e14';
+                } else {
+                    if (entity.rulYears < 5) hexColor = '#dc3545';
+                    else if (entity.rulYears < 15) hexColor = '#fd7e14';
+                    else hexColor = '#28a745';
                 }
 
                 for (let j = 0; j < cPos.length - 1; j++) {
@@ -1108,7 +1542,6 @@
                 });
             });
 
-            // Sample DTM Ground Surface
             const centerCartographics = denseSamplePoints.map(p => p.carto);
             const sampledCenterTerrain = await Cesium.sampleTerrainMostDetailed(terrainProviderInstance, centerCartographics);
 
@@ -1142,38 +1575,63 @@
                 data: {
                     datasets: [
                         {
+                            label: 'Sky (Above Surface)',
+                            data: pipeDataGlobal,
+                            parsing: { xAxisKey: 'x', yAxisKey: 'yTerrain' },
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(135, 206, 235, 0.45)', // Sky Light Blue above DTM
+                            pointRadius: 0,
+                            fill: 'end', // Natively fills up to the top of the chart bounding box
+                            datalabels: { display: false }
+                        },
+                        {
                             label: 'DTM Ground Surface (m)',
                             data: pipeDataGlobal,
                             parsing: { xAxisKey: 'x', yAxisKey: 'yTerrain' },
-                            borderColor: '#d35400',
-                            backgroundColor: 'rgba(211, 84, 0, 0.15)',
+                            borderColor: '#8B5A2B',
+                            backgroundColor: 'rgba(196, 164, 132, 0.70)', // Light Brown Earth below DTM
                             borderWidth: 2.5,
                             pointRadius: 0,
-                            fill: true,
+                            fill: 'start', // Natively fills all the way down to the bottom Y-axis boundary (0m)
                             tension: 0.1,
                             datalabels: { display: false }
                         },
                         {
-                            label: 'Pipe Invert Elevation (m)',
+                            label: isHeatmapActive ? 'Remaining Useful Life (RUL) Heatmap' : 'Pipe Invert Elevation (m)',
                             data: pipeDataGlobal,
                             parsing: { xAxisKey: 'x', yAxisKey: 'yPipe' },
                             pointRadius: (ctx) => {
                                 const pt = ctx.raw;
                                 if (!pt || !pt.isMainVertex) return 0;
-                                const isSel = pt.pipeIndex === selectedPipeIndex;
+                                const isSel = selectedPipeIndices.has(pt.pipeIndex);
                                 if (isSel) return chartFlashState ? 10 : 8;
                                 return pt.orderLabel ? 6 : 4;
                             },
                             pointHoverRadius: 10,
-                            pointBackgroundColor: (ctx) => ctx.raw?.segmentColor || '#27ae60',
+                            pointBackgroundColor: (ctx) => {
+                                const pt = ctx.raw;
+                                if (pt && selectedPipeIndices.has(pt.pipeIndex)) {
+                                    return chartFlashState ? '#ffc107' : (pt.segmentColor || '#28a745');
+                                }
+                                return pt?.segmentColor || '#28a745';
+                            },
                             pointBorderColor: (ctx) => {
-                                if (ctx.raw?.pipeIndex === selectedPipeIndex) return chartFlashState ? '#FFFF00' : '#FF0000';
+                                const pt = ctx.raw;
+                                if (pt && selectedPipeIndices.has(pt.pipeIndex)) {
+                                    return chartFlashState ? '#dc3545' : '#ffc107';
+                                }
                                 return '#ffffff';
                             },
-                            pointBorderWidth: (ctx) => (ctx.raw?.pipeIndex === selectedPipeIndex) ? 3 : 1.5,
+                            pointBorderWidth: (ctx) => selectedPipeIndices.has(ctx.raw?.pipeIndex) ? 3 : 1.5,
                             segment: {
-                                borderColor: ctx => ctx.p0.raw ? ctx.p0.raw.segmentColor : '#27ae60',
-                                borderWidth: ctx => (ctx.p0.raw && ctx.p0.raw.pipeIndex === selectedPipeIndex) ? 4.5 : 3
+                                borderColor: ctx => {
+                                    if (ctx.p0.raw && selectedPipeIndices.has(ctx.p0.raw.pipeIndex)) {
+                                        const baseCol = ctx.p0.raw.segmentColor || '#28a745';
+                                        return chartFlashState ? '#ffc107' : baseCol;
+                                    }
+                                    return ctx.p0.raw ? ctx.p0.raw.segmentColor : '#28a745';
+                                },
+                                borderWidth: ctx => (ctx.p0.raw && selectedPipeIndices.has(ctx.p0.raw.pipeIndex)) ? 4.5 : 3
                             },
                             borderWidth: 3,
                             fill: false
@@ -1190,16 +1648,29 @@
                     scales: {
                         x: {
                             type: 'linear',
-                            ticks: { color: '#aaa', font: { size: 10 } },
-                            title: { display: true, text: 'Chainage / Distance (m)', color: '#888' }
+                            ticks: { color: '#495057', font: { size: 10 } },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            title: { display: true, text: 'Chainage / Distance (m)', color: '#495057', font: { weight: 'bold' } }
                         },
                         y: {
-                            ticks: { color: '#aaa', font: { size: 10 } },
-                            title: { display: true, text: 'Elevation (m)', color: '#888' }
+                            min: 0,
+                            beginAtZero: true,
+                            ticks: { color: '#495057', font: { size: 10 } },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            title: { display: true, text: 'Elevation (m)', color: '#495057', font: { weight: 'bold' } }
                         }
                     },
                     plugins: {
-                        legend: { display: true, labels: { color: '#ccc', font: { size: 10 } } },
+                        legend: { 
+                            display: true, 
+                            labels: { 
+                                color: '#212529', 
+                                font: { size: 10, weight: 'bold' },
+                                filter: function(item, chart) {
+                                    return item.text !== 'Sky (Above Surface)'; // Keep legend clean for users
+                                }
+                            } 
+                        },
                         zoom: {
                             pan: { enabled: true, mode: 'xy' },
                             zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
@@ -1208,13 +1679,16 @@
                             callbacks: {
                                 label: function(context) {
                                     const raw = context.raw;
-                                    if (context.datasetIndex === 1) {
+                                    if (context.datasetIndex === 2) {
                                         const depthText = raw.depthVal >= 0 
                                             ? `Depth: ${raw.depthVal}m (Buried)` 
                                             : `Clearance: ${Math.abs(raw.depthVal)}m (Above Ground)`;
                                         return `Pipe ${raw.orderLabel || ''}: ${raw.yPipe}m | ${depthText}`;
                                     }
-                                    return `DTM Ground: ${raw.yTerrain}m`;
+                                    if (context.datasetIndex === 1) {
+                                        return `DTM Ground: ${raw.yTerrain}m`;
+                                    }
+                                    return null;
                                 }
                             }
                         },
@@ -1228,26 +1702,26 @@
                             offset: 6,
                             color: (ctx) => {
                                 const pt = ctx.dataset.data[ctx.dataIndex];
-                                if (pt?.pipeIndex === selectedPipeIndex) {
+                                if (selectedPipeIndices.has(pt?.pipeIndex)) {
                                     return chartFlashState ? '#000000' : '#ffffff';
                                 }
                                 return '#ffffff';
                             },
                             backgroundColor: (ctx) => {
                                 const pt = ctx.dataset.data[ctx.dataIndex];
-                                if (pt?.pipeIndex === selectedPipeIndex) {
-                                    return chartFlashState ? '#FFFF00' : '#e74c3c';
+                                if (selectedPipeIndices.has(pt?.pipeIndex)) {
+                                    return chartFlashState ? '#ffc107' : '#dc3545';
                                 }
                                 return pt?.segmentColor || '#333';
                             },
                             borderRadius: 4,
-                            borderColor: (ctx) => (ctx.dataset.data[ctx.dataIndex]?.pipeIndex === selectedPipeIndex) ? '#FFFF00' : 'transparent',
-                            borderWidth: (ctx) => (ctx.dataset.data[ctx.dataIndex]?.pipeIndex === selectedPipeIndex) ? 2 : 0,
+                            borderColor: (ctx) => selectedPipeIndices.has(ctx.dataset.data[ctx.dataIndex]?.pipeIndex) ? '#dc3545' : 'transparent',
+                            borderWidth: (ctx) => selectedPipeIndices.has(ctx.dataset.data[ctx.dataIndex]?.pipeIndex) ? 2 : 0,
                             padding: { top: 3, bottom: 3, left: 7, right: 7 },
                             font: (ctx) => {
                                 const pt = ctx.dataset.data[ctx.dataIndex];
-                                if (pt?.pipeIndex === selectedPipeIndex) {
-                                    return { weight: 'bold', size: chartFlashState ? 13 : 11 };
+                                if (selectedPipeIndices.has(pt?.pipeIndex)) {
+                                    return { weight: 'bold', size: chartFlashState ? 12 : 11 };
                                 }
                                 return { weight: 'bold', size: 11 };
                             },
@@ -1263,9 +1737,10 @@
             canvas.onmousedown = (e) => {
                 if (!profileChartInstance) return;
                 const points = profileChartInstance.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-                if (points.length > 0 && points[0].datasetIndex === 1) {
+                const pipeHit = points.find(p => p.datasetIndex === 2);
+                if (pipeHit) {
                     isDraggingPoint = true;
-                    activePointIndex = points[0].index;
+                    activePointIndex = pipeHit.index;
                     if (profileChartInstance.options.plugins.zoom) {
                         profileChartInstance.options.plugins.zoom.pan.enabled = false;
                     }
@@ -1300,12 +1775,12 @@
             canvas.onclick = (e) => {
                 if (!profileChartInstance || isDraggingPoint) return;
                 const points = profileChartInstance.getElementsAtEventForMode(e, 'index', { intersect: false }, false);
-                const pipeHit = points.find(p => p.datasetIndex === 1);
+                const pipeHit = points.find(p => p.datasetIndex === 2);
                 
                 if (pipeHit) {
                     const item = pipeDataGlobal[pipeHit.index];
                     if (item && item.pipeIndex !== undefined) {
-                        selectPipe(item.pipeIndex, 'chart');
+                        selectPipe(item.pipeIndex, e.ctrlKey || e.metaKey, 'chart');
                     }
                 }
             };
@@ -1319,12 +1794,10 @@
             }
         });
 
-        // SCREEN SLICER / RESIZER
         const resizer = document.getElementById('resizer');
-        const profileDrawer = document.getElementById('profileDrawer');
+        const bottomPanel = document.getElementById('bottomPanel');
         const xrayPanel = document.getElementById('xrayPanel');
         const infoPanel = document.getElementById('infoPanel');
-        const tablePanel = document.getElementById('tablePanel');
         let isResizing = false;
 
         resizer.addEventListener('mousedown', (e) => {
@@ -1338,13 +1811,13 @@
             if (!isResizing) return;
             const newHeight = window.innerHeight - e.clientY;
             
-            if (newHeight >= 80 && newHeight <= window.innerHeight * 0.8) {
-                profileDrawer.style.height = `${newHeight}px`;
+            if (newHeight >= 100 && newHeight <= window.innerHeight * 0.8) {
+                bottomPanel.style.height = `${newHeight}px`;
                 resizer.style.bottom = `${newHeight}px`;
-                tablePanel.style.bottom = `${newHeight + 15}px`;
+                xrayPanel.style.height = `calc(100vh - ${newHeight + 8}px)`;
+                xrayPanel.style.maxHeight = `calc(100vh - ${newHeight + 8}px)`;
                 
                 const panelsMaxHeight = `calc(100vh - ${newHeight + 40}px)`;
-                xrayPanel.style.maxHeight = panelsMaxHeight;
                 infoPanel.style.maxHeight = panelsMaxHeight;
 
                 if (profileChartInstance) {
@@ -1362,7 +1835,116 @@
             }
         });
 
-        // CONTROL PANEL EVENT BINDINGS
+        document.getElementById('importGeoJsonBtn').addEventListener('click', () => {
+            document.getElementById('importGeoJsonInput').click();
+        });
+
+        document.getElementById('importGeoJsonInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+                try {
+                    const parsedJson = JSON.parse(evt.target.result);
+                    const dataSource = await Cesium.GeoJsonDataSource.load(parsedJson);
+                    const newEntities = dataSource.entities.values;
+                    
+                    processRawEntities(newEntities);
+                    buildSpatialNodeRegistry();
+                    updateProfileChart();
+                    
+                    alert(`✅ Imported ${newEntities.length} new pipe segment(s) successfully.`);
+                } catch (err) {
+                    alert('Error parsing GeoJSON file: ' + err.message);
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        const drawPipeBtn = document.getElementById('drawPipeBtn');
+        function cleanupDrawPipe() {
+            drawnPipeCartesians = [];
+            drawPipeEntities.forEach(e => viewerInstance.entities.remove(e));
+            drawPipeEntities = [];
+            isDrawingPipe = false;
+            drawPipeBtn.classList.remove('active');
+            drawPipeBtn.textContent = '✏️ Draw New Pipe';
+        }
+
+        drawPipeBtn.addEventListener('click', () => {
+            isDrawingPipe = !isDrawingPipe;
+            drawPipeBtn.classList.toggle('active', isDrawingPipe);
+            drawPipeBtn.textContent = isDrawingPipe ? 'Right-Click to Finish Pipe...' : '✏️ Draw New Pipe';
+            if (!isDrawingPipe) cleanupDrawPipe();
+        });
+
+        document.getElementById('toggleSolidEarthBtn').addEventListener('click', () => {
+            isSolidEarth = !isSolidEarth;
+            updateDisplayState();
+        });
+
+        document.getElementById('captureViewBtn').addEventListener('click', () => {
+            captureCurrentView();
+        });
+
+        document.getElementById('predefinedViewBtn').addEventListener('click', () => {
+            applyPredefinedView();
+        });
+
+        document.getElementById('exportCsvBtn').addEventListener('click', () => {
+            let csvRows = ['PipeIndex,Criticality,RemainingLifeYears,LengthMeters,Diameter,AvgDepthMeters,CurrentOpPressure,YieldPressure,TransientScore,RemainingServiceLife,FailureLikelihood,SurveyLink'];
+            createdPipeEntities.forEach((entity, pipeIdx) => {
+                const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
+                const crit = props.Criticality || props.criticality || props.crit || 'Green';
+                const rulYrs = entity.rulYears || 25;
+                const diameter = props.Diameter || props.diameter || '0.8m';
+                
+                let segLen = 0;
+                const cPos = entity.cartoPositions;
+                for (let j = 0; j < cPos.length - 1; j++) {
+                    const p1 = Cesium.Cartesian3.fromRadians(cPos[j].longitude, cPos[j].latitude, cPos[j].height);
+                    const p2 = Cesium.Cartesian3.fromRadians(cPos[j+1].longitude, cPos[j+1].latitude, cPos[j+1].height);
+                    segLen += Cesium.Cartesian3.distance(p1, p2);
+                }
+
+                const pipePoints = pipeDataGlobal.filter(p => p.pipeIndex === pipeIdx);
+                let avgDepth = 'N/A';
+                if (pipePoints.length > 0) {
+                    const sumD = pipePoints.reduce((acc, curr) => acc + curr.depthVal, 0);
+                    avgDepth = (sumD / pipePoints.length).toFixed(2);
+                }
+                const op = props.Current_Operating_Pressure || '17.6';
+                const yp = props.Yield_Pressure || '19';
+                const ts = props.Transient_Score || '5';
+                const rsl = props.Remaining_Service_Life || rulYrs;
+                const lof = props.Likelihood_of_Failure || '5';
+                const survey = props.survey || props.Survey || 'N/A';
+
+                csvRows.push(`Pipe ${pipeIdx},"${crit}",${rulYrs},${segLen.toFixed(1)},"${diameter}",${avgDepth},${op},${yp},${ts},${rsl},${lof},"${survey}"`);
+            });
+
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Pipe_Inventory_Report.csv';
+            link.click();
+        });
+
+        document.getElementById('toggleHeatmapBtn').addEventListener('click', () => {
+            isHeatmapActive = !isHeatmapActive;
+            const btn = document.getElementById('toggleHeatmapBtn');
+            btn.classList.toggle('active', isHeatmapActive);
+            btn.textContent = isHeatmapActive ? '🎨 Switch to Criticality' : '🎨 Switch to RUL Heatmap';
+
+            createdPipeEntities.forEach(entity => {
+                const color = isHeatmapActive ? entity.rulColor : entity.baseColor;
+                entity.polylineVolume.material = color.withAlpha(0.95);
+            });
+
+            updateProfileChart();
+        });
+
         document.getElementById('clearStorageBtn').addEventListener('click', () => {
             localStorage.removeItem('pipe_height_edits');
             alert('Saved height edits cleared. Reloading original positions...');
@@ -1370,38 +1952,29 @@
         });
 
         document.getElementById('resetViewBtn').addEventListener('click', () => {
-            viewer.flyTo(pointCloudTileset, { duration: 1.5 });
+            applyPredefinedView();
         });
 
-        const toggleXrayHandler = () => {
+        document.getElementById('toggleXrayBtn').addEventListener('click', () => {
           isXrayActive = !isXrayActive;
           updateDisplayState();
-        };
-        document.getElementById('toggleXrayBtn').addEventListener('click', toggleXrayHandler);
-        document.getElementById('toggleXrayBtn2').addEventListener('click', toggleXrayHandler);
+        });
 
-        const toggleBaseMapHandler = () => {
+        document.getElementById('toggleBaseMapBtn').addEventListener('click', () => {
           isBaseMapHidden = !isBaseMapHidden;
           updateDisplayState();
-        };
-        document.getElementById('toggleBaseMapBtn').addEventListener('click', toggleBaseMapHandler);
-        document.getElementById('toggleBaseMapBtn2').addEventListener('click', toggleBaseMapHandler);
+        });
 
-        const toggleTiffHandler = () => {
+        document.getElementById('toggleTiffBtn').addEventListener('click', () => {
           isTiffHidden = !isTiffHidden;
           updateDisplayState();
-        };
-        document.getElementById('toggleTiffBtn').addEventListener('click', toggleTiffHandler);
-        document.getElementById('toggleTiffBtn2').addEventListener('click', toggleTiffHandler);
+        });
 
-        const opacitySliderHandler = (e) => {
+        document.getElementById('opacitySlider').addEventListener('input', (e) => {
           pointCloudAlpha = parseFloat(e.target.value);
           updateDisplayState();
-        };
-        document.getElementById('opacitySlider').addEventListener('input', opacitySliderHandler);
-        document.getElementById('opacitySlider2').addEventListener('input', opacitySliderHandler);
+        });
 
-        // 3D Cut Plane Slicer Controls
         const toggleClipBtn = document.getElementById('toggleClipBtn');
         const clipSlider = document.getElementById('clipSlider');
         toggleClipBtn.addEventListener('click', () => {
@@ -1414,7 +1987,6 @@
             clipPlane.distance = parseFloat(e.target.value);
         });
 
-        // Save & Export GeoJSON
         document.getElementById('exportGeoJsonBtn').addEventListener('click', async () => {
             const features = createdPipeEntities.map(e => {
                 const coords = e.cartoPositions.map(c => [
@@ -1435,7 +2007,7 @@
             if ('showSaveFilePicker' in window) {
                 try {
                     const handle = await window.showSaveFilePicker({
-                        suggestedName: 'Pipe WGS84.geojson',
+                        suggestedName: 'Pipe_Network_Export.geojson',
                         types: [{
                             description: 'GeoJSON Spatial File',
                             accept: { 'application/json': ['.geojson', '.json'] }
@@ -1453,12 +2025,11 @@
                 const blob = new Blob([geojsonString], { type: "application/json" });
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = "Pipe WGS84.geojson";
+                link.download = "Pipe_Network_Export.geojson";
                 link.click();
             }
         });
 
-        // 3D Measurement Tool
         let isMeasuring = false;
         let measurePoints = [];
         let measureEntities = [];
@@ -1477,54 +2048,214 @@
             measurePoints = [];
         });
 
-        // Corridor Fly-Through Walkthrough
-        let isWalking = false;
-        let walkthroughIndex = 0;
-        const flyThroughBtn = document.getElementById('flyThroughBtn');
+        // NATIVE MOUSE CLICK LISTENER ON CANVAS FOR ROBUST CTRL+CLICK MULTI-SELECTION
+        viewer.canvas.addEventListener('click', (e) => {
+            if (isDrawingPipe || isMeasuring) return;
 
-        flyThroughBtn.addEventListener('click', () => {
-            if (isWalking) {
-                isWalking = false;
-                flyThroughBtn.textContent = "🎬 Fly-Through Corridor";
-                flyThroughBtn.classList.remove('active');
-                return;
+            const rect = viewer.canvas.getBoundingClientRect();
+            const mousePosition = new Cesium.Cartesian2(e.clientX - rect.left, e.clientY - rect.top);
+            const picked = viewer.scene.pick(mousePosition);
+
+            if (Cesium.defined(picked) && picked.id && createdPipeEntities.includes(picked.id)) {
+                const pipeIdx = createdPipeEntities.indexOf(picked.id);
+                selectPipe(pipeIdx, e.ctrlKey || e.metaKey, '3d');
+            } else if (!e.ctrlKey && !e.metaKey) {
+                deselectAllPipes();
             }
-            if (walkthroughPositions.length < 2) return;
-            isWalking = true;
-            flyThroughBtn.textContent = "⏹ Stop Fly-Through";
-            flyThroughBtn.classList.add('active');
-            walkthroughIndex = 0;
-            runWalkthroughStep();
         });
 
-        function runWalkthroughStep() {
-            if (!isWalking || walkthroughIndex >= walkthroughPositions.length) {
-                isWalking = false;
-                flyThroughBtn.textContent = "🎬 Fly-Through Corridor";
-                flyThroughBtn.classList.remove('active');
-                return;
-            }
-            const currentPos = walkthroughPositions[walkthroughIndex];
-
-            viewer.camera.flyTo({
-                destination: currentPos,
-                orientation: {
-                    heading: Cesium.Math.toRadians(45),
-                    pitch: Cesium.Math.toRadians(-20),
-                    roll: 0
-                },
-                duration: 2.5,
-                complete: () => {
-                    walkthroughIndex++;
-                    if (isWalking) setTimeout(runWalkthroughStep, 400);
-                }
-            });
-        }
-
-        // CLICK HANDLER IN 3D VIEW
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
+        // MOUSE MOVE HOVER HANDLER
+        handler.setInputAction((movement) => {
+            if (isDrawingPipe || isMeasuring) return;
+
+            const picked = viewer.scene.pick(movement.endPosition);
+            if (Cesium.defined(picked) && picked.id && createdPipeEntities.includes(picked.id)) {
+                hoveredEntity = picked.id;
+            } else {
+                hoveredEntity = null;
+            }
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+        // DRAGGING LOGIC FOR CARDS
+        let draggedCard = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        document.addEventListener('mousedown', (e) => {
+            const card = e.target.closest('.floating-hud');
+            if (card) {
+                draggedCard = card;
+                const pIdx = parseInt(card.getAttribute('data-pipe-index'));
+                const rect = card.getBoundingClientRect();
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (draggedCard) {
+                const pIdx = parseInt(draggedCard.getAttribute('data-pipe-index'));
+                const containerRect = document.getElementById('popupContainer').getBoundingClientRect();
+                const newLeft = e.clientX - containerRect.left - dragOffset.x;
+                const newTop = e.clientY - containerRect.top - dragOffset.y;
+
+                cardCustomOffsets[pIdx] = { x: newLeft, y: newTop };
+                draggedCard.style.left = `${newLeft}px`;
+                draggedCard.style.top = `${newTop}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            draggedCard = null;
+        });
+
+        // PRE-RENDER LOOP: RENDER ALL MULTIPLE CARDS & COLLISION AVOIDANCE
+        viewer.scene.preRender.addEventListener(() => {
+            const popupContainer = document.getElementById('popupContainer');
+            const calloutSvg = document.getElementById('calloutSvg');
+
+            // Gather all pipe indices to display (selected + hovered)
+            const activeIndices = new Set(selectedPipeIndices);
+            if (hoveredEntity) {
+                const hIdx = createdPipeEntities.indexOf(hoveredEntity);
+                if (hIdx !== -1) activeIndices.add(hIdx);
+            }
+
+            // Sync DOM cards
+            const existingCards = popupContainer.querySelectorAll('.floating-hud');
+            existingCards.forEach(card => {
+                const pIdx = parseInt(card.getAttribute('data-pipe-index'));
+                if (!activeIndices.has(pIdx)) {
+                    card.remove();
+                }
+            });
+
+            let svgLinesHtml = '';
+            const placedBoxes = [];
+            const cardWidth = 240;
+            const cardHeight = 75;
+
+            // Sort active indices by screen Y position to keep collision resolution stable
+            const activeArr = Array.from(activeIndices).sort((a, b) => {
+                const posA = viewerInstance.scene.cartesianToCanvasCoordinates(createdPipeEntities[a].position.getValue(Cesium.JulianDate.now()));
+                const posB = viewerInstance.scene.cartesianToCanvasCoordinates(createdPipeEntities[b].position.getValue(Cesium.JulianDate.now()));
+                return (posA?.y || 0) - (posB?.y || 0);
+            });
+
+            activeArr.forEach(pIdx => {
+                const entity = createdPipeEntities[pIdx];
+                if (!entity) return;
+
+                const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
+                const orderVal = props.order ?? props.Order ?? props.ORDER ?? (pIdx + 1);
+
+                let card = popupContainer.querySelector(`.floating-hud[data-pipe-index="${pIdx}"]`);
+                if (!card) {
+                    card = document.createElement('div');
+                    card.className = 'floating-hud';
+                    card.setAttribute('data-pipe-index', pIdx);
+                    popupContainer.appendChild(card);
+                }
+
+                card.innerHTML = `
+                    <h4>Pipe ${orderVal} Operational Health</h4>
+                    <table class="health-table">
+                        <tr>
+                          <th>Op. Press</th>
+                          <th>Yield Press</th>
+                          <th>Transient</th>
+                          <th>RSL (yrs)</th>
+                          <th>Fail Risk</th>
+                        </tr>
+                        <tr>
+                          <td>${props.Current_Operating_Pressure || '17.6'}</td>
+                          <td>${props.Yield_Pressure || '19'}</td>
+                          <td>${props.Transient_Score || '5'}</td>
+                          <td>${props.Remaining_Service_Life || entity.rulYears || '25'}</td>
+                          <td>${props.Likelihood_of_Failure || '5'}</td>
+                        </tr>
+                    </table>
+                `;
+
+                const worldPos = entity.position ? entity.position.getValue(Cesium.JulianDate.now()) : null;
+                if (worldPos) {
+                    const screenPos = viewerInstance.scene.cartesianToCanvasCoordinates(worldPos);
+                    if (screenPos) {
+                        let leftPx, topPx;
+                        
+                        if (cardCustomOffsets[pIdx]) {
+                            leftPx = cardCustomOffsets[pIdx].x;
+                            topPx = cardCustomOffsets[pIdx].y;
+                        } else {
+                            // Preferred initial position
+                            leftPx = screenPos.x + 40;
+                            topPx = screenPos.y - 90;
+
+                            // Collision avoidance check against already placed card boxes
+                            let collision = true;
+                            let safety = 0;
+                            while (collision && safety < 10) {
+                                collision = false;
+                                for (const box of placedBoxes) {
+                                    if (!(leftPx + cardWidth < box.left || leftPx > box.left + box.width ||
+                                          topPx + cardHeight < box.top || topPx > box.top + box.height)) {
+                                        topPx = box.top + box.height + 10;
+                                        collision = true;
+                                        break;
+                                    }
+                                }
+                                safety++;
+                            }
+                        }
+
+                        placedBoxes.push({ left: leftPx, top: topPx, width: cardWidth, height: cardHeight });
+
+                        card.style.left = `${leftPx}px`;
+                        card.style.top = `${topPx}px`;
+                        card.style.display = 'block';
+
+                        svgLinesHtml += `<line x1="${screenPos.x}" y1="${screenPos.y}" x2="${leftPx}" y2="${topPx + cardHeight}" stroke="#007bff" stroke-width="3" stroke-linecap="round" filter="drop-shadow(0 0 4px rgba(0,123,255,0.5))" />`;
+                        svgLinesHtml += `<circle cx="${screenPos.x}" cy="${screenPos.y}" r="4" fill="#ffc107" stroke="#000" stroke-width="1.5" />`;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            calloutSvg.innerHTML = svgLinesHtml;
+        });
+
         handler.setInputAction((click) => {
+            if (isDrawingPipe) {
+                const pickedPos = viewerInstance.scene.pickPosition(click.position);
+                if (Cesium.defined(pickedPos)) {
+                    drawnPipeCartesians.push(pickedPos);
+                    const ptEntity = viewerInstance.entities.add({
+                        position: pickedPos,
+                        point: { pixelSize: 8, color: Cesium.Color.CYAN, disableDepthTestDistance: Number.POSITIVE_INFINITY }
+                    });
+                    drawPipeEntities.push(ptEntity);
+
+                    if (drawnPipeCartesians.length > 1) {
+                        const p1 = drawnPipeCartesians[drawnPipeCartesians.length - 2];
+                        const p2 = drawnPipeCartesians[drawnPipeCartesians.length - 1];
+                        const lineEntity = viewerInstance.entities.add({
+                            polyline: {
+                                positions: [p1, p2],
+                                width: 3,
+                                material: Cesium.Color.CYAN,
+                                depthFailMaterial: Cesium.Color.CYAN
+                            }
+                        });
+                        drawPipeEntities.push(lineEntity);
+                    }
+                }
+                return;
+            }
+
             if (isMeasuring) {
                 const pickedPos = viewer.scene.pickPosition(click.position);
                 if (Cesium.defined(pickedPos)) {
@@ -1564,15 +2295,36 @@
                 }
                 return;
             }
-
-            const picked = viewer.scene.pick(click.position);
-            if (Cesium.defined(picked) && picked.id && createdPipeEntities.includes(picked.id)) {
-                const pipeIdx = createdPipeEntities.indexOf(picked.id);
-                selectPipe(pipeIdx, '3d');
-            } else {
-                infoPanel.style.display = 'none';
-            }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        handler.setInputAction((click) => {
+            if (isDrawingPipe && drawnPipeCartesians.length >= 2) {
+                let diamInput = prompt("Pipe Drawn Successfully.\n\nPlease enter the new Pipe Diameter in meters:", "0.8");
+                if (diamInput === null) {
+                    cleanupDrawPipe();
+                    return; 
+                }
+                
+                let diamFloat = parseFloat(diamInput);
+                if (isNaN(diamFloat) || diamFloat <= 0) diamFloat = 0.8;
+
+                const newCartos = drawnPipeCartesians.map(c => Cesium.Cartographic.fromCartesian(c));
+                const newProps = {
+                    Order: createdPipeEntities.length + 1,
+                    Criticality: 'Green',
+                    Diameter: `${diamFloat}m`,
+                    survey: 'N/A'
+                };
+
+                addPipeToSystem(newCartos, newProps);
+                buildSpatialNodeRegistry();
+                updateProfileChart();
+
+                cleanupDrawPipe();
+            } else if (isDrawingPipe) {
+                cleanupDrawPipe();
+            }
+        }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
 
       } catch (error) {
         console.error('Cesium Execution Error:', error);
