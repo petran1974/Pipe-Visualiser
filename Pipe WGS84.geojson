@@ -7,14 +7,14 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.540782249485337,
-            55.47978028110476,
-            87.93
+            -4.5407822494853365,
+            55.479780281104766,
+            87.67
           ],
           [
             -4.540769298915055,
             55.47969075671774,
-            87.47
+            85.48
           ]
         ]
       },
@@ -22,7 +22,27 @@
         "fid": 1,
         "order": 0,
         "Criticality": "Red",
-        "RUL_Years": 3
+        "RUL_Years": 3,
+        "Current_Operating_Pressure": "15.7",
+        "Yield_Pressure": "22.2",
+        "Transient_Score": 3,
+        "Remaining_Service_Life": 3,
+        "Likelihood_of_Failure": 7,
+        "Sub_Span_Name": "Pipe 0 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1970,
+        "Pipe_Age": 56,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "112 hrs",
+        "Deficit": "-174",
+        "OPA_Impact": "44.9",
+        "Cost_To_Maintain": "£1.15M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£83,085",
+        "Max_Cost_Fail": "£1.23M",
+        "Risk_Value": "£663,177",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -33,12 +53,12 @@
           [
             -4.540769298915055,
             55.47969075671774,
-            87.47
+            85.48
           ],
           [
-            -4.540756348409673,
+            -4.540756348409674,
             55.479601232327575,
-            84.67
+            84.66
           ]
         ]
       },
@@ -46,7 +66,27 @@
         "fid": 1,
         "order": 1,
         "Criticality": "Amber",
-        "RUL_Years": 10
+        "RUL_Years": 10,
+        "Current_Operating_Pressure": "16.0",
+        "Yield_Pressure": "21.0",
+        "Transient_Score": 7,
+        "Remaining_Service_Life": 10,
+        "Likelihood_of_Failure": 6,
+        "Sub_Span_Name": "Pipe 1 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1971,
+        "Pipe_Age": 55,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "143 hrs",
+        "Deficit": "-110",
+        "OPA_Impact": "33.0",
+        "Cost_To_Maintain": "£1.33M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£90,439",
+        "Max_Cost_Fail": "£1.23M",
+        "Risk_Value": "£607,390",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -55,14 +95,14 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.540756348409673,
+            -4.540756348409674,
             55.479601232327575,
-            84.67
+            84.66
           ],
           [
             -4.54074339796918,
             55.479511707934265,
-            84.22
+            81.18
           ]
         ]
       },
@@ -70,7 +110,27 @@
         "fid": 1,
         "order": 2,
         "Criticality": "Amber",
-        "RUL_Years": 10
+        "RUL_Years": 10,
+        "Current_Operating_Pressure": "17.9",
+        "Yield_Pressure": "21.5",
+        "Transient_Score": 4,
+        "Remaining_Service_Life": 10,
+        "Likelihood_of_Failure": 4,
+        "Sub_Span_Name": "Pipe 2 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1972,
+        "Pipe_Age": 54,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "114 hrs",
+        "Deficit": "-145",
+        "OPA_Impact": "40.4",
+        "Cost_To_Maintain": "£1.36M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£87,455",
+        "Max_Cost_Fail": "£1.27M",
+        "Risk_Value": "£654,557",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -81,12 +141,12 @@
           [
             -4.54074339796918,
             55.479511707934265,
-            84.22
+            81.18
           ],
           [
             -4.54073044759359,
             55.47942218353786,
-            81.57
+            77.81
           ]
         ]
       },
@@ -94,7 +154,27 @@
         "fid": 1,
         "order": 3,
         "Criticality": "Green",
-        "RUL_Years": 25
+        "RUL_Years": 25,
+        "Current_Operating_Pressure": "18.0",
+        "Yield_Pressure": "21.6",
+        "Transient_Score": 5,
+        "Remaining_Service_Life": 25,
+        "Likelihood_of_Failure": 2,
+        "Sub_Span_Name": "Pipe 3 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1973,
+        "Pipe_Age": 53,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "176 hrs",
+        "Deficit": "-123",
+        "OPA_Impact": "35.9",
+        "Cost_To_Maintain": "£1.26M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£80,689",
+        "Max_Cost_Fail": "£1.34M",
+        "Risk_Value": "£649,443",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -105,12 +185,12 @@
           [
             -4.54073044759359,
             55.47942218353786,
-            81.57
+            77.81
           ],
           [
-            -4.540717497282894,
+            -4.540717497282895,
             55.479332659138265,
-            76.64
+            75.97
           ]
         ]
       },
@@ -118,7 +198,27 @@
         "fid": 1,
         "order": 4,
         "Criticality": "Green",
-        "RUL_Years": 25
+        "RUL_Years": 25,
+        "Current_Operating_Pressure": "18.9",
+        "Yield_Pressure": "21.1",
+        "Transient_Score": 4,
+        "Remaining_Service_Life": 25,
+        "Likelihood_of_Failure": 3,
+        "Sub_Span_Name": "Pipe 4 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1974,
+        "Pipe_Age": 52,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "147 hrs",
+        "Deficit": "-126",
+        "OPA_Impact": "31.9",
+        "Cost_To_Maintain": "£1.30M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£81,771",
+        "Max_Cost_Fail": "£1.34M",
+        "Risk_Value": "£670,420",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -127,17 +227,17 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.540717497282894,
+            -4.540717497282895,
             55.479332659138265,
-            76.64
+            75.97
           ],
           [
             -4.540709484065253,
             55.47927726421811,
-            74.34
+            74.91
           ],
           [
-            -4.540705737889205,
+            -4.540705737889201,
             55.4792430859087,
             74.91
           ]
@@ -147,7 +247,27 @@
         "fid": 1,
         "order": 5,
         "Criticality": "Green",
-        "RUL_Years": 25
+        "RUL_Years": 25,
+        "Current_Operating_Pressure": "18.5",
+        "Yield_Pressure": "21.8",
+        "Transient_Score": 3,
+        "Remaining_Service_Life": 25,
+        "Likelihood_of_Failure": 2,
+        "Sub_Span_Name": "Pipe 5 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1975,
+        "Pipe_Age": 51,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "174 hrs",
+        "Deficit": "-151",
+        "OPA_Impact": "39.2",
+        "Cost_To_Maintain": "£1.36M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£85,017",
+        "Max_Cost_Fail": "£1.23M",
+        "Risk_Value": "£671,022",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -156,12 +276,12 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.540705737889205,
+            -4.540705737889201,
             55.4792430859087,
             74.91
           ],
           [
-            -4.540695911400387,
+            -4.540695911400386,
             55.47915343342652,
             75
           ]
@@ -171,7 +291,27 @@
         "fid": 1,
         "order": 6,
         "Criticality": "Red",
-        "RUL_Years": 3
+        "RUL_Years": 3,
+        "Current_Operating_Pressure": "18.7",
+        "Yield_Pressure": "19.6",
+        "Transient_Score": 6,
+        "Remaining_Service_Life": 3,
+        "Likelihood_of_Failure": 9,
+        "Sub_Span_Name": "Pipe 6 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1976,
+        "Pipe_Age": 50,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "175 hrs",
+        "Deficit": "-122",
+        "OPA_Impact": "36.5",
+        "Cost_To_Maintain": "£1.11M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£92,181",
+        "Max_Cost_Fail": "£1.24M",
+        "Risk_Value": "£630,556",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -180,12 +320,12 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.540695911400387,
+            -4.540695911400386,
             55.47915343342652,
             75
           ],
           [
-            -4.5406860849623945,
+            -4.540686084962395,
             55.47906378094193,
             75
           ]
@@ -195,7 +335,27 @@
         "fid": 1,
         "order": 7,
         "Criticality": "Amber",
-        "RUL_Years": 10
+        "RUL_Years": 10,
+        "Current_Operating_Pressure": "15.4",
+        "Yield_Pressure": "22.4",
+        "Transient_Score": 3,
+        "Remaining_Service_Life": 10,
+        "Likelihood_of_Failure": 4,
+        "Sub_Span_Name": "Pipe 7 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1977,
+        "Pipe_Age": 49,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "172 hrs",
+        "Deficit": "-156",
+        "OPA_Impact": "42.9",
+        "Cost_To_Maintain": "£1.16M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£90,975",
+        "Max_Cost_Fail": "£1.20M",
+        "Risk_Value": "£604,783",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -204,12 +364,12 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.5406860849623945,
+            -4.540686084962395,
             55.47906378094193,
             75
           ],
           [
-            -4.54067625857522,
+            -4.540676258575224,
             55.47897412845496,
             75
           ]
@@ -219,7 +379,27 @@
         "fid": 1,
         "order": 8,
         "Criticality": "Green",
-        "RUL_Years": 25
+        "RUL_Years": 25,
+        "Current_Operating_Pressure": "18.5",
+        "Yield_Pressure": "18.6",
+        "Transient_Score": 6,
+        "Remaining_Service_Life": 25,
+        "Likelihood_of_Failure": 3,
+        "Sub_Span_Name": "Pipe 8 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1978,
+        "Pipe_Age": 48,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "158 hrs",
+        "Deficit": "-128",
+        "OPA_Impact": "42.8",
+        "Cost_To_Maintain": "£1.10M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£77,878",
+        "Max_Cost_Fail": "£1.29M",
+        "Risk_Value": "£627,965",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -228,19 +408,19 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.54067625857522,
+            -4.540676258575224,
             55.47897412845496,
             75
           ],
           [
             -4.540670676727634,
             55.47892732449514,
-            75
+            75.06
           ],
           [
-            -4.540673581893276,
+            -4.540673581893274,
             55.47888445443361,
-            75
+            75.06
           ]
         ]
       },
@@ -249,7 +429,27 @@
         "order": 9,
         "Criticality": "Green",
         "survey": "https://drive.google.com/file/d/1iY7HtZVdWbep3_JWxAh9oeSaDJIgCsGL/view?usp=drive_link",
-        "RUL_Years": 25
+        "RUL_Years": 25,
+        "Current_Operating_Pressure": "16.4",
+        "Yield_Pressure": "22.1",
+        "Transient_Score": 5,
+        "Remaining_Service_Life": 25,
+        "Likelihood_of_Failure": 2,
+        "Sub_Span_Name": "Pipe 9 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1979,
+        "Pipe_Age": 47,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "155 hrs",
+        "Deficit": "-136",
+        "OPA_Impact": "37.4",
+        "Cost_To_Maintain": "£1.33M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£77,400",
+        "Max_Cost_Fail": "£1.37M",
+        "Risk_Value": "£663,156",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -258,14 +458,14 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.540673581893276,
+            -4.540673581893274,
             55.47888445443361,
-            75
+            75.06
           ],
           [
-            -4.540681733553183,
-            55.478794747800045,
-            75.1
+            -4.540681733553185,
+            55.47879474780004,
+            74.82
           ]
         ]
       },
@@ -273,7 +473,27 @@
         "fid": 1,
         "order": 10,
         "Criticality": "Green",
-        "RUL_Years": 25
+        "RUL_Years": 25,
+        "Current_Operating_Pressure": "18.2",
+        "Yield_Pressure": "20.5",
+        "Transient_Score": 6,
+        "Remaining_Service_Life": 25,
+        "Likelihood_of_Failure": 1,
+        "Sub_Span_Name": "Pipe 10 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1980,
+        "Pipe_Age": 46,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "163 hrs",
+        "Deficit": "-174",
+        "OPA_Impact": "31.0",
+        "Cost_To_Maintain": "£1.19M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£75,361",
+        "Max_Cost_Fail": "£1.29M",
+        "Risk_Value": "£668,756",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -282,14 +502,14 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.540681733553183,
-            55.478794747800045,
-            75.1
+            -4.540681733553185,
+            55.47879474780004,
+            74.82
           ],
           [
-            -4.540689885182227,
+            -4.5406898851822275,
             55.47870504116508,
-            75.09
+            74.82
           ]
         ]
       },
@@ -297,7 +517,27 @@
         "fid": 1,
         "order": 11,
         "Criticality": "Red",
-        "RUL_Years": 3
+        "RUL_Years": 3,
+        "Current_Operating_Pressure": "17.0",
+        "Yield_Pressure": "19.1",
+        "Transient_Score": 6,
+        "Remaining_Service_Life": 3,
+        "Likelihood_of_Failure": 7,
+        "Sub_Span_Name": "Pipe 11 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1981,
+        "Pipe_Age": 45,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "118 hrs",
+        "Deficit": "-121",
+        "OPA_Impact": "44.7",
+        "Cost_To_Maintain": "£1.32M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£81,971",
+        "Max_Cost_Fail": "£1.20M",
+        "Risk_Value": "£607,571",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -306,19 +546,14 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.540689885182227,
+            -4.5406898851822275,
             55.47870504116508,
-            75.09
+            74.82
           ],
           [
-            -4.540695526643313,
-            55.4786434665288,
-            75
-          ],
-          [
-            -4.540695477568174,
+            -4.540695477568176,
             55.47863821459751,
-            74.22
+            74.82
           ]
         ]
       },
@@ -326,7 +561,27 @@
         "fid": 1,
         "order": 12,
         "Criticality": "Green",
-        "RUL_Years": 25
+        "RUL_Years": 25,
+        "Current_Operating_Pressure": "16.2",
+        "Yield_Pressure": "19.6",
+        "Transient_Score": 6,
+        "Remaining_Service_Life": 25,
+        "Likelihood_of_Failure": 1,
+        "Sub_Span_Name": "Pipe 12 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1982,
+        "Pipe_Age": 44,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "153 hrs",
+        "Deficit": "-161",
+        "OPA_Impact": "31.1",
+        "Cost_To_Maintain": "£1.15M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£89,094",
+        "Max_Cost_Fail": "£1.38M",
+        "Risk_Value": "£625,731",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -337,10 +592,10 @@
           [
             -4.540695446363806,
             55.47863802920349,
-            74.22
+            74.82
           ],
           [
-            -4.540696892878208,
+            -4.540696892878206,
             55.478525505001286,
             74.15
           ]
@@ -350,7 +605,27 @@
         "fid": 1,
         "order": 13,
         "Criticality": "Amber",
-        "RUL_Years": 10
+        "RUL_Years": 10,
+        "Current_Operating_Pressure": "15.1",
+        "Yield_Pressure": "22.9",
+        "Transient_Score": 7,
+        "Remaining_Service_Life": 10,
+        "Likelihood_of_Failure": 5,
+        "Sub_Span_Name": "Pipe 13 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1983,
+        "Pipe_Age": 43,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "146 hrs",
+        "Deficit": "-163",
+        "OPA_Impact": "32.3",
+        "Cost_To_Maintain": "£1.21M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£88,310",
+        "Max_Cost_Fail": "£1.27M",
+        "Risk_Value": "£668,591",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -359,14 +634,14 @@
         "type": "LineString",
         "coordinates": [
           [
-            -4.540696892878208,
+            -4.540696892878206,
             55.478525505001286,
             74.15
           ],
           [
             -4.54069609963549,
             55.47843568010824,
-            78.57
+            77.15
           ]
         ]
       },
@@ -374,7 +649,27 @@
         "fid": 1,
         "order": 14,
         "Criticality": "Amber",
-        "RUL_Years": 10
+        "RUL_Years": 10,
+        "Current_Operating_Pressure": "15.5",
+        "Yield_Pressure": "19.7",
+        "Transient_Score": 4,
+        "Remaining_Service_Life": 10,
+        "Likelihood_of_Failure": 5,
+        "Sub_Span_Name": "Pipe 14 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1984,
+        "Pipe_Age": 42,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "157 hrs",
+        "Deficit": "-139",
+        "OPA_Impact": "39.7",
+        "Cost_To_Maintain": "£1.26M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£78,946",
+        "Max_Cost_Fail": "£1.27M",
+        "Risk_Value": "£650,553",
+        "Diameter": "0.8m"
       }
     },
     {
@@ -385,12 +680,12 @@
           [
             -4.54069609963549,
             55.47843568010824,
-            78.57
+            77.15
           ],
           [
-            -4.540695306402606,
+            -4.540695306402607,
             55.47834585521399,
-            81.01
+            80
           ]
         ]
       },
@@ -398,31 +693,27 @@
         "fid": 1,
         "order": 15,
         "Criticality": "Amber",
-        "RUL_Years": 10
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -4.540695306402606,
-            55.47834585521399,
-            81.01
-          ],
-          [
-            -4.540695095897329,
-            55.47832201762086,
-            81.08
-          ]
-        ]
-      },
-      "properties": {
-        "fid": 1,
-        "order": 16,
-        "Criticality": "Green",
-        "RUL_Years": 25
+        "RUL_Years": 10,
+        "Current_Operating_Pressure": "17.1",
+        "Yield_Pressure": "22.1",
+        "Transient_Score": 3,
+        "Remaining_Service_Life": 10,
+        "Likelihood_of_Failure": 6,
+        "Sub_Span_Name": "Pipe 15 Bridge",
+        "Material": "Steel (ST)",
+        "Date_Laid": 1985,
+        "Pipe_Age": 41,
+        "Resilience": "0 hrs",
+        "Max_Properties": "50,775",
+        "Est_Repair_Time": "131 hrs",
+        "Deficit": "-142",
+        "OPA_Impact": "33.8",
+        "Cost_To_Maintain": "£1.20M",
+        "Third_Party_Damage": "£0",
+        "Repair_Cost": "£80,599",
+        "Max_Cost_Fail": "£1.25M",
+        "Risk_Value": "£669,203",
+        "Diameter": "0.8m"
       }
     }
   ]

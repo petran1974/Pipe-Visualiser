@@ -9,6 +9,8 @@
   <!-- Chart.js & Plugins CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <!-- Hammer.js is required by chartjs-plugin-zoom for panning gestures -->
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
   <style>
@@ -65,7 +67,7 @@
       border: 1px solid #007bff;
       pointer-events: auto;
       cursor: grab;
-      width: 240px;
+      width: 280px;
       box-sizing: border-box;
       user-select: none;
       transition: top 0.15s ease-out, left 0.15s ease-out;
@@ -79,7 +81,19 @@
       padding-bottom: 3px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
+
+    .hud-toggle-btn {
+      background: none;
+      border: none;
+      color: #007bff;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0 4px;
+    }
+    .hud-toggle-btn:hover { color: #0056b3; }
 
     .health-table {
       width: 100%;
@@ -87,6 +101,7 @@
       background: #f8f9fa;
       border-radius: 4px;
       overflow: hidden;
+      margin-bottom: 4px;
     }
     .health-table th {
       background: #e9ecef;
@@ -104,6 +119,17 @@
       padding: 4px 2px;
       border: 1px solid #dee2e6;
       text-align: center;
+    }
+
+    .hud-section-title {
+      background: #007bff;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: bold;
+      text-align: center;
+      padding: 3px;
+      margin-top: 6px;
+      border-radius: 2px;
     }
 
     /* Left Control Dashboard - Light Theme */
@@ -182,7 +208,7 @@
       padding: 15px 20px;
       border-radius: 8px;
       font-size: 13px;
-      min-width: 270px;
+      min-width: 290px;
       max-width: 380px;
       max-height: calc(100vh - 270px);
       overflow-y: auto;
@@ -218,11 +244,6 @@
     }
     .btn-deselect:hover { background: #c82333; }
 
-    #infoPanel table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-    #infoPanel td, #infoPanel th { padding: 5px 6px; vertical-align: top; font-size: 11px; text-align: center; border: 1px solid #dee2e6; }
-    #infoPanel td.label-col { color: #495057; font-weight: bold; text-align: left; width: 45%; border: none; padding: 4px 0; }
-    #infoPanel td.val-col { text-align: right; border: none; padding: 4px 0; color: #212529; }
-
     .vertex-editor-box {
       margin-top: 12px;
       padding-top: 10px;
@@ -233,18 +254,30 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 6px;
+      gap: 5px;
     }
-    .vertex-row span { font-size: 12px; color: #007bff; font-weight: bold; }
+    .vertex-row span { font-size: 11px; color: #007bff; font-weight: bold; }
     .vertex-input {
-      width: 90px;
+      width: 75px;
       background: #fff;
       color: #212529;
       border: 1px solid #ced4da;
-      padding: 4px 6px;
+      padding: 3px 5px;
       border-radius: 4px;
-      font-size: 12px;
+      font-size: 11px;
       text-align: right;
     }
+    .btn-del-vertex {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 3px 6px;
+      font-size: 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-del-vertex:hover { background: #c82333; }
 
     /* Screen Slicer / Draggable Divider Bar */
     #resizer {
@@ -264,7 +297,7 @@
       height: 10px;
     }
 
-    /* Unified Bottom Split Panel (Profile Chart & Table Side-by-Side) */
+    /* Unified Bottom Split Panel */
     #bottomPanel {
       position: absolute;
       bottom: 0;
@@ -319,7 +352,7 @@
       height: 100%;
     }
 
-    /* Table Panel Inside Bottom Split View */
+    /* Table Panel with Horizontal Scrollbar Support */
     #tablePanel {
       width: 48%;
       height: 100%;
@@ -368,7 +401,8 @@
       border: 1px solid #dee2e6;
     }
     #pipeDataTable {
-      width: 100%;
+      width: max-content;
+      min-width: 100%;
       border-collapse: collapse;
       text-align: left;
       font-size: 11px;
@@ -378,13 +412,14 @@
       top: 0;
       background: #e9ecef;
       color: #212529;
-      padding: 5px 6px;
+      padding: 5px 8px;
       border-bottom: 2px solid #dee2e6;
       white-space: nowrap;
       font-weight: bold;
+      z-index: 5;
     }
     #pipeDataTable th input {
-      width: 90%;
+      width: 90px;
       background: #fff;
       color: #212529;
       border: 1px solid #ced4da;
@@ -395,7 +430,7 @@
       box-sizing: border-box;
     }
     #pipeDataTable td {
-      padding: 4px 6px;
+      padding: 6px 8px;
       border-bottom: 1px solid #dee2e6;
       white-space: nowrap;
       text-align: center;
@@ -430,7 +465,7 @@
     .badge-amber { background: #fd7e14; }
     .badge-green { background: #28a745; }
 
-    /* PDF Viewer Embedded Modal - Light Theme */
+    /* PDF Viewer */
     #pdfModal {
       display: none;
       position: fixed;
@@ -536,7 +571,6 @@
       <h4>Layer Management</h4>
       <input type="file" id="importGeoJsonInput" accept=".geojson,.json" style="display:none;">
       <button id="importGeoJsonBtn" class="btn-tool btn-secondary">📂 Import Pipe GeoJSON</button>
-      <button id="drawPipeBtn" class="btn-tool btn-secondary">✏️ Draw New Pipe</button>
     </div>
 
     <div class="panel-section">
@@ -559,20 +593,20 @@
   <!-- Right Attribute & Inspection Panel -->
   <div id="infoPanel">
     <div class="info-header-container">
-      <h3>Pipe Attributes & Heights</h3>
+      <h3>Pipe Control</h3>
       <button class="btn-deselect" onclick="deselectAllPipes()">✕ Deselect</button>
     </div>
-    <div id="infoContent">Select a pipe segment to view attributes.</div>
+    <div id="infoContent">Select a pipe segment to view editor.</div>
   </div>
 
   <!-- Screen Slicer Handle -->
   <div id="resizer"></div>
 
-  <!-- Unified Bottom Split Panel (Profile Chart & Pipe Inventory Table Side-by-Side) -->
+  <!-- Unified Bottom Split Panel -->
   <div id="bottomPanel">
     <div id="profileDrawer">
       <div id="profileHeader">
-        <h4>Longitudinal Profile (DTM Ground Surface & Pipe Invert | Drag Vertices to Edit)</h4>
+        <h4>Longitudinal Profile (DTM Ground Surface & Pipe Invert | Drag Vertices to Edit | Hold Shift to Pan)</h4>
         <button id="resetZoomBtn">↺ Reset Chart Zoom</button>
       </div>
       <div id="profileCanvasContainer">
@@ -595,13 +629,27 @@
               <th># <br><input type="text" class="column-filter" data-col="0" placeholder="Filter..."></th>
               <th>Criticality <br><input type="text" class="column-filter" data-col="1" placeholder="Filter..."></th>
               <th>RUL <br><input type="text" class="column-filter" data-col="2" placeholder="Filter..."></th>
-              <th>Length <br><input type="text" class="column-filter" data-col="3" placeholder="Filter..."></th>
+              <th>Length <br><input type="text" class="column-filter" data-col="3" placeholder="Filter (>10)..."></th>
               <th>Diam <br><input type="text" class="column-filter" data-col="4" placeholder="Filter..."></th>
               <th>Depth <br><input type="text" class="column-filter" data-col="5" placeholder="Filter..."></th>
-              <th>Op.Press <br><input type="text" class="column-filter" data-col="6" placeholder="Filter..."></th>
+              <th>Op.Press <br><input type="text" class="column-filter" data-col="6" placeholder="Filter (>16)..."></th>
               <th>Yield <br><input type="text" class="column-filter" data-col="7" placeholder="Filter..."></th>
               <th>Transient <br><input type="text" class="column-filter" data-col="8" placeholder="Filter..."></th>
               <th>Risk <br><input type="text" class="column-filter" data-col="9" placeholder="Filter..."></th>
+              <th>Sub-Span Name <br><input type="text" class="column-filter" data-col="10" placeholder="Filter..."></th>
+              <th>Material <br><input type="text" class="column-filter" data-col="11" placeholder="Filter..."></th>
+              <th>Date Laid <br><input type="text" class="column-filter" data-col="12" placeholder="Filter (>1970)..."></th>
+              <th>Pipe Age <br><input type="text" class="column-filter" data-col="13" placeholder="Filter..."></th>
+              <th>Resilience <br><input type="text" class="column-filter" data-col="14" placeholder="Filter..."></th>
+              <th>Max Prop <br><input type="text" class="column-filter" data-col="15" placeholder="Filter..."></th>
+              <th>Est. Repair <br><input type="text" class="column-filter" data-col="16" placeholder="Filter..."></th>
+              <th>Deficit <br><input type="text" class="column-filter" data-col="17" placeholder="Filter..."></th>
+              <th>OPA Impact <br><input type="text" class="column-filter" data-col="18" placeholder="Filter..."></th>
+              <th>Maintain Supply <br><input type="text" class="column-filter" data-col="19" placeholder="Filter..."></th>
+              <th>3rd Party Dmg <br><input type="text" class="column-filter" data-col="20" placeholder="Filter..."></th>
+              <th>Repair Cost <br><input type="text" class="column-filter" data-col="21" placeholder="Filter..."></th>
+              <th>Max Cost Fail <br><input type="text" class="column-filter" data-col="22" placeholder="Filter..."></th>
+              <th>Risk Value <br><input type="text" class="column-filter" data-col="23" placeholder="Filter..."></th>
               <th>Survey</th>
             </tr>
           </thead>
@@ -650,10 +698,9 @@
     let pipeCorridorBoundingSphere = null;
     let hoveredEntity = null;
 
-    // Custom draggable offsets for popup cards { pipeIndex: {x, y} }
     const cardCustomOffsets = {};
+    const hudExpandedState = new Map();
 
-    // PREDEFINED DEFAULT STATES
     let isSolidEarth = false;
     let isXrayActive = true;
     let isBaseMapHidden = true;
@@ -661,16 +708,48 @@
     let pointCloudAlpha = 1.0;
     let isHeatmapActive = false;
 
-    // DRAWING STATE VARIABLES
-    let isDrawingPipe = false;
-    let drawnPipeCartesians = [];
-    let drawPipeEntities = []; 
-
     const PIPE_HEIGHT_OFFSET = 0.0;
     let savedElevations = {};
     let allPipeCartesians = [];
 
     const nodeRegistry = new Map();
+
+    function getCesiumWorldPosition(clickPosition, viewer) {
+        const ray = viewer.camera.getPickRay(clickPosition);
+        let cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+        if (!Cesium.defined(cartesian) || Cesium.Cartesian3.magnitude(cartesian) < 6000000) {
+            cartesian = viewer.scene.pickPosition(clickPosition);
+        }
+        if (!Cesium.defined(cartesian) || Cesium.Cartesian3.magnitude(cartesian) < 6000000) {
+            cartesian = viewer.camera.pickEllipsoid(clickPosition, viewer.scene.globe.ellipsoid);
+        }
+        return cartesian;
+    }
+
+    function getConditionBadge(value, type) {
+        let v = parseFloat(value);
+        if (isNaN(v) && typeof value === 'string') {
+            const low = value.toLowerCase();
+            if (low.includes('red') || low.includes('high') || low === '3') return `<span class="badge-crit badge-red">${value}</span>`;
+            if (low.includes('amber') || low.includes('med') || low.includes('orange') || low === '2') return `<span class="badge-crit badge-amber">${value}</span>`;
+            return `<span class="badge-crit badge-green">${value}</span>`;
+        }
+
+        let badgeClass = 'badge-green';
+        if (type === 'rul') {
+            if (v < 5) badgeClass = 'badge-red';
+            else if (v < 15) badgeClass = 'badge-amber';
+            return `<span class="badge-crit ${badgeClass}">${value} Yrs</span>`;
+        } else if (type === 'transient' || type === 'risk') {
+            if (v >= 7) badgeClass = 'badge-red';
+            else if (v >= 4) badgeClass = 'badge-amber';
+        } else if (type === 'pressure') {
+            if (v >= 18.5) badgeClass = 'badge-red';
+            else if (v >= 16) badgeClass = 'badge-amber';
+        }
+
+        return `<span class="badge-crit ${badgeClass}">${value}</span>`;
+    }
 
     function openPdfViewer(url) {
       let embedUrl = url;
@@ -1018,8 +1097,32 @@
     }
 
     function addPipeToSystem(cartoPositions, rawProps) {
+        const cleanedPositions = [];
+        cartoPositions.forEach((carto, i) => {
+            if (i === 0) {
+                cleanedPositions.push(carto);
+            } else {
+                const prev = cleanedPositions[cleanedPositions.length - 1];
+                const dist = Cesium.Cartesian3.distance(
+                    Cesium.Cartesian3.fromRadians(prev.longitude, prev.latitude, prev.height),
+                    Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, carto.height)
+                );
+                if (dist > 0.05) {
+                    cleanedPositions.push(carto);
+                }
+            }
+        });
+
+        if (cleanedPositions.length < 2) return;
+
         const pipeIdx = createdPipeEntities.length;
-        const correctedPositions = cartoPositions.map(carto => {
+        const correctedPositions = cleanedPositions.map((carto, vIdx) => {
+            const savedKey = `${pipeIdx}_${vIdx}`;
+            if (savedElevations[savedKey] !== undefined) {
+                carto.height = savedElevations[savedKey];
+            } else {
+                carto.height += PIPE_HEIGHT_OFFSET;
+            }
             const pt = Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, carto.height);
             allPipeCartesians.push(pt);
             return pt;
@@ -1055,22 +1158,25 @@
         }
 
         if (!cesiumProps.hasProperty('RUL_Years')) cesiumProps.addProperty('RUL_Years', rulYears);
-
-        if (!cesiumProps.hasProperty('Current_Operating_Pressure')) {
-            cesiumProps.addProperty('Current_Operating_Pressure', (15 + Math.random() * 4).toFixed(1));
-        }
-        if (!cesiumProps.hasProperty('Yield_Pressure')) {
-            cesiumProps.addProperty('Yield_Pressure', (18 + Math.random() * 5).toFixed(1));
-        }
-        if (!cesiumProps.hasProperty('Transient_Score')) {
-            cesiumProps.addProperty('Transient_Score', Math.floor(3 + Math.random() * 5));
-        }
-        if (!cesiumProps.hasProperty('Remaining_Service_Life')) {
-            cesiumProps.addProperty('Remaining_Service_Life', rulYears);
-        }
-        if (!cesiumProps.hasProperty('Likelihood_of_Failure')) {
-            cesiumProps.addProperty('Likelihood_of_Failure', rulYears < 5 ? Math.floor(7 + Math.random() * 3) : (rulYears < 15 ? Math.floor(4 + Math.random() * 3) : Math.floor(1 + Math.random() * 3)));
-        }
+        if (!cesiumProps.hasProperty('Current_Operating_Pressure')) cesiumProps.addProperty('Current_Operating_Pressure', (15 + Math.random() * 4).toFixed(1));
+        if (!cesiumProps.hasProperty('Yield_Pressure')) cesiumProps.addProperty('Yield_Pressure', (18 + Math.random() * 5).toFixed(1));
+        if (!cesiumProps.hasProperty('Transient_Score')) cesiumProps.addProperty('Transient_Score', Math.floor(3 + Math.random() * 5));
+        if (!cesiumProps.hasProperty('Remaining_Service_Life')) cesiumProps.addProperty('Remaining_Service_Life', rulYears);
+        if (!cesiumProps.hasProperty('Likelihood_of_Failure')) cesiumProps.addProperty('Likelihood_of_Failure', rulYears < 5 ? Math.floor(7 + Math.random() * 3) : (rulYears < 15 ? Math.floor(4 + Math.random() * 3) : Math.floor(1 + Math.random() * 3)));
+        if (!cesiumProps.hasProperty('Sub_Span_Name')) cesiumProps.addProperty('Sub_Span_Name', `Pipe ${orderText} Bridge`);
+        if (!cesiumProps.hasProperty('Material')) cesiumProps.addProperty('Material', 'Steel (ST)');
+        if (!cesiumProps.hasProperty('Date_Laid')) cesiumProps.addProperty('Date_Laid', 1970 + (pipeIdx % 20));
+        if (!cesiumProps.hasProperty('Pipe_Age')) cesiumProps.addProperty('Pipe_Age', 2026 - (1970 + (pipeIdx % 20)));
+        if (!cesiumProps.hasProperty('Resilience')) cesiumProps.addProperty('Resilience', '0 hrs');
+        if (!cesiumProps.hasProperty('Max_Properties')) cesiumProps.addProperty('Max_Properties', '50,775');
+        if (!cesiumProps.hasProperty('Est_Repair_Time')) cesiumProps.addProperty('Est_Repair_Time', `${Math.floor(100 + Math.random() * 80)} hrs`);
+        if (!cesiumProps.hasProperty('Deficit')) cesiumProps.addProperty('Deficit', `-${Math.floor(100 + Math.random() * 80)}`);
+        if (!cesiumProps.hasProperty('OPA_Impact')) cesiumProps.addProperty('OPA_Impact', (30 + Math.random() * 15).toFixed(1));
+        if (!cesiumProps.hasProperty('Cost_To_Maintain')) cesiumProps.addProperty('Cost_To_Maintain', `£${(1.1 + Math.random() * 0.3).toFixed(2)}M`);
+        if (!cesiumProps.hasProperty('Third_Party_Damage')) cesiumProps.addProperty('Third_Party_Damage', '£0');
+        if (!cesiumProps.hasProperty('Repair_Cost')) cesiumProps.addProperty('Repair_Cost', `£${Math.floor(75000 + Math.random() * 20000).toLocaleString()}`);
+        if (!cesiumProps.hasProperty('Max_Cost_Fail')) cesiumProps.addProperty('Max_Cost_Fail', `£${(1.2 + Math.random() * 0.2).toFixed(2)}M`);
+        if (!cesiumProps.hasProperty('Risk_Value')) cesiumProps.addProperty('Risk_Value', `£${Math.floor(600000 + Math.random() * 80000).toLocaleString()}`);
 
         let diamStr = String(rawProps.Diameter || rawProps.diameter || rawProps.DIAMETER || '0.8').replace('m','').trim();
         let diamFloat = parseFloat(diamStr);
@@ -1103,7 +1209,7 @@
             }
         });
 
-        pipeEntity.cartoPositions = cartoPositions;
+        pipeEntity.cartoPositions = cleanedPositions;
         pipeEntity.baseColor = color;
         pipeEntity.rulColor = rulColor;
         pipeEntity.rulYears = rulYears;
@@ -1115,21 +1221,136 @@
             const rawEntity = rawEntities[i];
             if (rawEntity.polyline) {
                 const rawPositions = rawEntity.polyline.positions.getValue(Cesium.JulianDate.now());
-                const cartoPositions = rawPositions.map((cartesian, vIdx) => {
-                    const carto = Cesium.Cartographic.fromCartesian(cartesian);
-                    const savedKey = `${createdPipeEntities.length}_${vIdx}`;
-                    if (savedElevations[savedKey] !== undefined) {
-                        carto.height = savedElevations[savedKey];
-                    } else {
-                        carto.height += PIPE_HEIGHT_OFFSET;
-                    }
-                    return carto;
+                const cartoPositions = rawPositions.map((cartesian) => {
+                    return Cesium.Cartographic.fromCartesian(cartesian);
                 });
                 
                 const props = rawEntity.properties ? rawEntity.properties.getValue(Cesium.JulianDate.now()) : {};
                 addPipeToSystem(cartoPositions, props);
             }
         }
+    }
+
+    function openInfoPanelForEntity(entity) {
+        currentlySelectedEntity = entity;
+        const pipeIdx = createdPipeEntities.indexOf(entity);
+        const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
+        const orderVal = props.order ?? props.Order ?? props.ORDER ?? (pipeIdx + 1);
+
+        let tableHtml = `<h4 style="margin: 0 0 10px 0; color: #007bff; font-size: 13px;">Pipe ${orderVal} Control Panel</h4>`;
+
+        if (entity.cartoPositions) {
+            tableHtml += `<div class="vertex-editor-box" style="margin-top:0; border-top:none; padding-top:0;">
+                <h4 style="margin: 0 0 8px 0; color: #007bff; font-size: 13px;">Edit / Delete Vertices:</h4>`;
+            
+            entity.cartoPositions.forEach((carto, idx) => {
+                const hVal = carto.height.toFixed(2);
+                tableHtml += `
+                    <div class="vertex-row">
+                        <span>V${idx + 1}:</span>
+                        <input type="number" step="0.2" class="vertex-input" data-pipe-idx="${pipeIdx}" data-vindex="${idx}" value="${hVal}">
+                        <button class="btn-del-vertex" onclick="deleteVertexFromPipe(${pipeIdx}, ${idx})">Delete</button>
+                    </div>`;
+            });
+            tableHtml += `</div>`;
+        }
+
+        tableHtml += `
+            <div style="margin-top: 15px; border-top: 1px dashed #dc3545; padding-top: 12px;">
+                <button class="btn-tool" style="background:#dc3545;" onclick="deleteSelectedPipeSection()">🗑️ Delete Full Pipe Section</button>
+            </div>`;
+
+        const infoPanel = document.getElementById('infoPanel');
+        const infoContent = document.getElementById('infoContent');
+        infoContent.innerHTML = tableHtml;
+        infoPanel.style.display = 'block';
+
+        if (entity.cartoPositions) {
+            const inputs = infoContent.querySelectorAll('.vertex-input');
+            inputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const pIdx = parseInt(e.target.getAttribute('data-pipe-idx'));
+                    const vIdx = parseInt(e.target.getAttribute('data-vindex'));
+                    const newH = parseFloat(e.target.value);
+
+                    if (!isNaN(newH)) {
+                        updateVertexHeightDirect(pIdx, vIdx, newH);
+                    }
+                });
+            });
+        }
+    }
+
+    window.deleteVertexFromPipe = function(pipeIdx, vIdx) {
+        const entity = createdPipeEntities[pipeIdx];
+        if (!entity || !entity.cartoPositions) return;
+        if (entity.cartoPositions.length <= 2) {
+            alert("A pipe segment must maintain at least 2 vertices.");
+            return;
+        }
+
+        entity.cartoPositions.splice(vIdx, 1);
+
+        const updatedCartesians = entity.cartoPositions.map(c => 
+            Cesium.Cartesian3.fromRadians(c.longitude, c.latitude, c.height)
+        );
+        entity.polylineVolume.positions = updatedCartesians;
+        entity.position = calculatePolylineMidpoint(updatedCartesians);
+
+        buildSpatialNodeRegistry();
+        updateProfileChart();
+        openInfoPanelForEntity(entity);
+        saveHeightsToLocalStorage();
+    };
+
+    window.deleteSelectedPipeSection = function() {
+        if (!currentlySelectedEntity) return;
+        const pipeIdx = createdPipeEntities.indexOf(currentlySelectedEntity);
+        if (pipeIdx === -1) return;
+
+        if (confirm(`Are you sure you want to delete Pipe Section #${pipeIdx + 1}?`)) {
+            viewerInstance.entities.remove(currentlySelectedEntity);
+            createdPipeEntities.splice(pipeIdx, 1);
+            
+            deselectAllPipes();
+            buildSpatialNodeRegistry();
+            updateProfileChart();
+            
+            alert('🗑️ Pipe section deleted successfully.');
+        }
+    };
+
+    function saveHeightsToLocalStorage() {
+        const store = {};
+        createdPipeEntities.forEach((ent, pIdx) => {
+            ent.cartoPositions.forEach((carto, vIdx) => {
+                store[`${pIdx}_${vIdx}`] = parseFloat(carto.height.toFixed(2));
+            });
+        });
+        localStorage.setItem('pipe_height_edits', JSON.stringify(store));
+    }
+
+    function updateVertexHeightDirect(pipeIdx, vIdx, newHeight) {
+        const entity = createdPipeEntities[pipeIdx];
+        if (!entity || !entity.cartoPositions || !entity.cartoPositions[vIdx]) return;
+
+        const targetKey = `${pipeIdx}_${vIdx}`;
+        const connectedNodes = nodeRegistry.get(targetKey) || [{ pipeIndex: pipeIdx, vertexIndex: vIdx }];
+
+        connectedNodes.forEach(node => {
+            const ent = createdPipeEntities[node.pipeIndex];
+            if (ent && ent.cartoPositions[node.vertexIndex]) {
+                ent.cartoPositions[node.vertexIndex].height = newHeight;
+                const updatedCartesians = ent.cartoPositions.map(c => 
+                    Cesium.Cartesian3.fromRadians(c.longitude, c.latitude, c.height)
+                );
+                ent.polylineVolume.positions = updatedCartesians;
+                ent.position = calculatePolylineMidpoint(updatedCartesians);
+            }
+        });
+
+        saveHeightsToLocalStorage();
+        updateProfileChart();
     }
 
     async function initApp() {
@@ -1143,7 +1364,14 @@
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: terrainProviderInstance,
             infoBox: false,
-            selectionIndicator: false
+            selectionIndicator: false,
+            geocoder: false,
+            homeButton: false,
+            sceneModePicker: false,
+            baseLayerPicker: false,
+            navigationHelpButton: false,
+            animation: false,
+            timeline: false
         });
         viewerInstance = viewer;
 
@@ -1202,156 +1430,6 @@
         updateDisplayState();
         applyPredefinedView();
 
-        function saveHeightsToLocalStorage() {
-            const store = {};
-            createdPipeEntities.forEach((entity, pipeIdx) => {
-                entity.cartoPositions.forEach((carto, vIdx) => {
-                    store[`${pipeIdx}_${vIdx}`] = parseFloat(carto.height.toFixed(2));
-                });
-            });
-            localStorage.setItem('pipe_height_edits', JSON.stringify(store));
-        }
-
-        function updateEntity3DGeometry(entity) {
-            const updatedCartesians = entity.cartoPositions.map(c => 
-                Cesium.Cartesian3.fromRadians(c.longitude, c.latitude, c.height)
-            );
-            entity.polylineVolume.positions = updatedCartesians;
-            entity.position = calculatePolylineMidpoint(updatedCartesians);
-        }
-
-        function updateVertexHeightAndSnap(dataIndex, newHeight) {
-            const item = pipeDataGlobal[dataIndex];
-            if (!item) return;
-
-            const targetKey = `${item.pipeIndex}_${item.vertexIndex}`;
-            const connectedNodes = nodeRegistry.get(targetKey) || [{ pipeIndex: item.pipeIndex, vertexIndex: item.vertexIndex }];
-
-            connectedNodes.forEach(node => {
-                const ent = createdPipeEntities[node.pipeIndex];
-                if (ent && ent.cartoPositions[node.vertexIndex]) {
-                    ent.cartoPositions[node.vertexIndex].height = newHeight;
-                    updateEntity3DGeometry(ent);
-
-                    const matches = pipeDataGlobal.filter(p => p.pipeIndex === node.pipeIndex && p.vertexIndex === node.vertexIndex);
-                    matches.forEach(m => {
-                        m.yPipe = newHeight;
-                        m.depthVal = parseFloat((m.yTerrain - newHeight).toFixed(2));
-                    });
-                }
-            });
-
-            saveHeightsToLocalStorage();
-        }
-
-        function openInfoPanelForEntity(entity) {
-            currentlySelectedEntity = entity;
-            const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
-            const surveyVal = props.survey ?? props.Survey ?? props.SURVEY ?? 'N/A';
-            
-            let surveyDisplay = surveyVal;
-            if (String(surveyVal).startsWith('http')) {
-                surveyDisplay = `<button onclick="openPdfViewer('${surveyVal}')" style="background:none; border:none; color:#007bff; text-decoration:underline; font-weight:bold; cursor:pointer; padding:0; font-size:12px;">Open PDF Document ↗</button>`;
-            }
-
-            let tableHtml = `
-                <table class="health-table">
-                    <tr>
-                      <th colspan="5">Operational Health</th>
-                    </tr>
-                    <tr>
-                      <th>Current Operating Pressure (Bar)</th>
-                      <th>Yield Pressure (Bar (as tested))</th>
-                      <th>Transient Score</th>
-                      <th>Remaining Service Life (yrs)</th>
-                      <th>Likelihood of Failure</th>
-                    </tr>
-                    <tr>
-                      <td>${props.Current_Operating_Pressure || '17.6'}</td>
-                      <td>${props.Yield_Pressure || '19'}</td>
-                      <td>${props.Transient_Score || '5'}</td>
-                      <td>${props.Remaining_Service_Life || entity.rulYears || '25'}</td>
-                      <td>${props.Likelihood_of_Failure || '5'}</td>
-                    </tr>
-                </table>
-                <table style="margin-top:10px;">`;
-
-            tableHtml += `<tr><td class="label-col">Remaining Life:</td><td class="val-col"><strong style="color:${entity.rulYears < 5 ? '#dc3545' : (entity.rulYears < 15 ? '#fd7e14' : '#28a745')};">${entity.rulYears} Years</strong></td></tr>`;
-            tableHtml += `<tr><td class="label-col">Survey:</td><td class="val-col">${surveyDisplay}</td></tr>`;
-
-            for (const [key, value] of Object.entries(props)) {
-                if (['survey', 'Survey', 'SURVEY', 'RUL_Years', 'Current_Operating_Pressure', 'Yield_Pressure', 'Transient_Score', 'Remaining_Service_Life', 'Likelihood_of_Failure'].includes(key)) continue;
-                let valDisplay = value !== null && value !== undefined ? value : '';
-                if (String(valDisplay).startsWith('http')) {
-                    valDisplay = `<button onclick="openPdfViewer('${valDisplay}')" style="background:none; border:none; color:#007bff; text-decoration:underline; cursor:pointer; padding:0; font-size:12px;">View Document ↗</button>`;
-                }
-                tableHtml += `<tr><td class="label-col">${key}:</td><td class="val-col">${valDisplay}</td></tr>`;
-            }
-            tableHtml += '</table>';
-
-            if (entity.cartoPositions) {
-                tableHtml += `<div class="vertex-editor-box">
-                    <h4 style="margin: 0 0 8px 0; color: #007bff; font-size: 13px;">Edit Vertex Heights (Meters):</h4>`;
-                
-                entity.cartoPositions.forEach((carto, idx) => {
-                    const hVal = carto.height.toFixed(2);
-                    tableHtml += `
-                        <div class="vertex-row">
-                            <span>Vertex ${idx + 1}:</span>
-                            <input type="number" step="0.2" class="vertex-input" data-vindex="${idx}" value="${hVal}">
-                        </div>`;
-                });
-                tableHtml += `</div>`;
-            }
-
-            tableHtml += `
-                <div style="margin-top: 15px; border-top: 1px dashed #dee2e6; padding-top: 10px;">
-                    <h4 style="margin: 0 0 8px 0; color: #007bff; font-size: 13px;">Attach Inspection Photo:</h4>
-                    <input type="file" id="photoLoader" accept="image/*" style="font-size: 11px; color: #495057; margin-bottom: 8px; width: 100%;">
-                    <div id="photoPreviewContainer">
-                        ${entity.attachedPhoto ? `<img src="${entity.attachedPhoto}" style="width:100%; border-radius:4px; border:1px solid #007bff;">` : '<span style="color:#6c757d; font-size:11px;">No photo attached.</span>'}
-                    </div>
-                </div>`;
-
-            const infoPanel = document.getElementById('infoPanel');
-            const infoContent = document.getElementById('infoContent');
-            infoContent.innerHTML = tableHtml;
-            infoPanel.style.display = 'block';
-
-            const photoLoader = document.getElementById('photoLoader');
-            photoLoader.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const imageUrl = URL.createObjectURL(file);
-                    entity.attachedPhoto = imageUrl;
-                    document.getElementById('photoPreviewContainer').innerHTML = 
-                        `<img src="${imageUrl}" style="width:100%; border-radius:4px; border:1px solid #007bff;">`;
-                }
-            });
-
-            if (entity.cartoPositions) {
-                const inputs = infoContent.querySelectorAll('.vertex-input');
-                inputs.forEach(input => {
-                    input.addEventListener('input', (e) => {
-                        const vIdx = parseInt(e.target.getAttribute('data-vindex'));
-                        const newH = parseFloat(e.target.value);
-
-                        if (!isNaN(newH)) {
-                            const pipeIdx = createdPipeEntities.indexOf(entity);
-                            let globalIdx = 0;
-                            for (let k = 0; k < pipeIdx; k++) {
-                                globalIdx += createdPipeEntities[k].cartoPositions.length;
-                            }
-                            globalIdx += vIdx;
-
-                            updateVertexHeightAndSnap(globalIdx, newH);
-                            updateProfileChart();
-                        }
-                    });
-                });
-            }
-        }
-
         function populatePipeTable() {
             const tableBody = document.getElementById('pipeTableBody');
             tableBody.innerHTML = '';
@@ -1362,15 +1440,7 @@
                 const orderVal = props.order ?? props.Order ?? props.ORDER ?? (pipeIdx + 1);
                 
                 const crit = String(props.Criticality || props.criticality || props.CRITICALITY || props.crit || 'Green').trim();
-                let badgeClass = 'badge-green';
-                const critLower = crit.toLowerCase();
-                if (critLower.includes('red') || critLower.includes('high') || critLower === '3') badgeClass = 'badge-red';
-                else if (critLower.includes('amber') || critLower.includes('med') || critLower.includes('orange') || critLower === '2') badgeClass = 'badge-amber';
-
                 const rulYrs = entity.rulYears || 25;
-                let rulBadgeClass = 'badge-green';
-                if (rulYrs < 5) rulBadgeClass = 'badge-red';
-                else if (rulYrs < 15) rulBadgeClass = 'badge-amber';
 
                 let segLen = 0;
                 const cPos = entity.cartoPositions;
@@ -1394,6 +1464,21 @@
                 const transient = props.Transient_Score || '5';
                 const failRisk = props.Likelihood_of_Failure || '5';
 
+                const subSpan = props.Sub_Span_Name || `Pipe ${orderVal} Bridge`;
+                const material = props.Material || 'Steel (ST)';
+                const dateLaid = props.Date_Laid || '1972';
+                const pipeAge = props.Pipe_Age || '54 yrs';
+                const resilience = props.Resilience || '0 hrs';
+                const maxProp = props.Max_Properties || '50,775';
+                const estRepair = props.Est_Repair_Time || '148 hrs';
+                const deficit = props.Deficit || '-148';
+                const opaImpact = props.OPA_Impact || '37.5';
+                const maintainSupply = props.Cost_To_Maintain || '£1.2M';
+                const thirdPartyDmg = props.Third_Party_Damage || '£0';
+                const repairCost = props.Repair_Cost || '£81,300';
+                const maxCostFail = props.Max_Cost_Fail || '£1.28M';
+                const riskValue = props.Risk_Value || '£642K';
+
                 const surveyUrl = props.survey ?? props.Survey ?? props.SURVEY ?? '';
                 let surveyBtn = '<span style="color:#adb5bd;">N/A</span>';
                 if (String(surveyUrl).startsWith('http')) {
@@ -1406,15 +1491,29 @@
 
                 row.innerHTML = `
                     <td><strong>Pipe ${orderVal}</strong></td>
-                    <td><span class="badge-crit ${badgeClass}">${crit}</span></td>
-                    <td><span class="badge-crit ${rulBadgeClass}">${rulYrs} Yrs</span></td>
+                    <td>${getConditionBadge(crit, 'crit')}</td>
+                    <td>${getConditionBadge(rulYrs, 'rul')}</td>
                     <td>${segLen.toFixed(1)}m</td>
                     <td>${diameter}</td>
                     <td>${avgDepth}</td>
-                    <td>${opPress}</td>
-                    <td>${yieldPress}</td>
-                    <td>${transient}</td>
-                    <td>${failRisk}</td>
+                    <td>${getConditionBadge(opPress, 'pressure')}</td>
+                    <td>${getConditionBadge(yieldPress, 'pressure')}</td>
+                    <td>${getConditionBadge(transient, 'transient')}</td>
+                    <td>${getConditionBadge(failRisk, 'risk')}</td>
+                    <td>${subSpan}</td>
+                    <td>${material}</td>
+                    <td>${dateLaid}</td>
+                    <td>${pipeAge}</td>
+                    <td>${resilience}</td>
+                    <td>${maxProp}</td>
+                    <td>${estRepair}</td>
+                    <td>${deficit}</td>
+                    <td>${opaImpact}</td>
+                    <td>${maintainSupply}</td>
+                    <td>${thirdPartyDmg}</td>
+                    <td>${repairCost}</td>
+                    <td>${maxCostFail}</td>
+                    <td>${riskValue}</td>
                     <td>${surveyBtn}</td>
                 `;
 
@@ -1443,7 +1542,29 @@
                 for (const [colIdx, filterVal] of Object.entries(filters)) {
                     if (filterVal !== '') {
                         const cellText = cells[colIdx].textContent.toLowerCase();
-                        if (!cellText.includes(filterVal)) {
+                        const cellValClean = parseFloat(cellText.replace(/[^0-9.-]+/g,""));
+                        
+                        let matched = false;
+                        if (filterVal.startsWith('>=')) {
+                            const num = parseFloat(filterVal.slice(2));
+                            matched = !isNaN(cellValClean) && cellValClean >= num;
+                        } else if (filterVal.startsWith('<=')) {
+                            const num = parseFloat(filterVal.slice(2));
+                            matched = !isNaN(cellValClean) && cellValClean <= num;
+                        } else if (filterVal.startsWith('>')) {
+                            const num = parseFloat(filterVal.slice(1));
+                            matched = !isNaN(cellValClean) && cellValClean > num;
+                        } else if (filterVal.startsWith('<')) {
+                            const num = parseFloat(filterVal.slice(1));
+                            matched = !isNaN(cellValClean) && cellValClean < num;
+                        } else if (filterVal.startsWith('=')) {
+                            const num = parseFloat(filterVal.slice(1));
+                            matched = !isNaN(cellValClean) && cellValClean === num;
+                        } else {
+                            matched = cellText.includes(filterVal);
+                        }
+
+                        if (!matched) {
                             showRow = false;
                             break;
                         }
@@ -1564,6 +1685,9 @@
 
             populatePipeTable();
 
+            let minElev = Math.min(...pipeDataGlobal.map(pt => Math.min(pt.yTerrain, pt.yPipe)));
+            let calculatedYMin = isFinite(minElev) ? Math.floor(minElev - 10) : 0;
+
             const canvas = document.getElementById('profileChart');
             const ctx = canvas.getContext('2d');
             if (profileChartInstance) {
@@ -1579,9 +1703,9 @@
                             data: pipeDataGlobal,
                             parsing: { xAxisKey: 'x', yAxisKey: 'yTerrain' },
                             borderColor: 'transparent',
-                            backgroundColor: 'rgba(135, 206, 235, 0.45)', // Sky Light Blue above DTM
+                            backgroundColor: 'rgba(135, 206, 235, 0.45)',
                             pointRadius: 0,
-                            fill: 'end', // Natively fills up to the top of the chart bounding box
+                            fill: 'end',
                             datalabels: { display: false }
                         },
                         {
@@ -1589,10 +1713,10 @@
                             data: pipeDataGlobal,
                             parsing: { xAxisKey: 'x', yAxisKey: 'yTerrain' },
                             borderColor: '#8B5A2B',
-                            backgroundColor: 'rgba(196, 164, 132, 0.70)', // Light Brown Earth below DTM
+                            backgroundColor: 'rgba(196, 164, 132, 0.70)',
                             borderWidth: 2.5,
                             pointRadius: 0,
-                            fill: 'start', // Natively fills all the way down to the bottom Y-axis boundary (0m)
+                            fill: 'start',
                             tension: 0.1,
                             datalabels: { display: false }
                         },
@@ -1653,8 +1777,7 @@
                             title: { display: true, text: 'Chainage / Distance (m)', color: '#495057', font: { weight: 'bold' } }
                         },
                         y: {
-                            min: 0,
-                            beginAtZero: true,
+                            min: calculatedYMin,
                             ticks: { color: '#495057', font: { size: 10 } },
                             grid: { color: 'rgba(0, 0, 0, 0.05)' },
                             title: { display: true, text: 'Elevation (m)', color: '#495057', font: { weight: 'bold' } }
@@ -1667,39 +1790,34 @@
                                 color: '#212529', 
                                 font: { size: 10, weight: 'bold' },
                                 filter: function(item, chart) {
-                                    return item.text !== 'Sky (Above Surface)'; // Keep legend clean for users
+                                    return item.text !== 'Sky (Above Surface)'; 
                                 }
                             } 
                         },
                         zoom: {
-                            pan: { enabled: true, mode: 'xy' },
-                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+                            pan: { 
+                                enabled: true, 
+                                mode: 'xy',
+                                modifierKey: 'shift' 
+                            },
+                            zoom: { 
+                                wheel: { enabled: true }, 
+                                pinch: { enabled: true }, 
+                                mode: 'x' 
+                            }
                         },
                         tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const raw = context.raw;
-                                    if (context.datasetIndex === 2) {
-                                        const depthText = raw.depthVal >= 0 
-                                            ? `Depth: ${raw.depthVal}m (Buried)` 
-                                            : `Clearance: ${Math.abs(raw.depthVal)}m (Above Ground)`;
-                                        return `Pipe ${raw.orderLabel || ''}: ${raw.yPipe}m | ${depthText}`;
-                                    }
-                                    if (context.datasetIndex === 1) {
-                                        return `DTM Ground: ${raw.yTerrain}m`;
-                                    }
-                                    return null;
-                                }
-                            }
+                            enabled: false
                         },
                         datalabels: {
                             display: (ctx) => {
                                 const pt = ctx.dataset.data[ctx.dataIndex];
                                 return pt && pt.orderLabel !== undefined && pt.orderLabel !== '';
                             },
-                            align: 'top',
+                            align: 'start',
                             anchor: 'center',
-                            offset: 6,
+                            rotation: -90,
+                            offset: 4,
                             color: (ctx) => {
                                 const pt = ctx.dataset.data[ctx.dataIndex];
                                 if (selectedPipeIndices.has(pt?.pipeIndex)) {
@@ -1717,13 +1835,13 @@
                             borderRadius: 4,
                             borderColor: (ctx) => selectedPipeIndices.has(ctx.dataset.data[ctx.dataIndex]?.pipeIndex) ? '#dc3545' : 'transparent',
                             borderWidth: (ctx) => selectedPipeIndices.has(ctx.dataset.data[ctx.dataIndex]?.pipeIndex) ? 2 : 0,
-                            padding: { top: 3, bottom: 3, left: 7, right: 7 },
+                            padding: { top: 3, bottom: 3, left: 5, right: 5 },
                             font: (ctx) => {
                                 const pt = ctx.dataset.data[ctx.dataIndex];
                                 if (selectedPipeIndices.has(pt?.pipeIndex)) {
-                                    return { weight: 'bold', size: chartFlashState ? 12 : 11 };
+                                    return { weight: 'bold', size: chartFlashState ? 10 : 9 };
                                 }
-                                return { weight: 'bold', size: 11 };
+                                return { weight: 'bold', size: 9 };
                             },
                             formatter: (value) => `${value.orderLabel} (d:${value.depthVal}m)`
                         }
@@ -1736,14 +1854,13 @@
 
             canvas.onmousedown = (e) => {
                 if (!profileChartInstance) return;
+                if (e.shiftKey) return; 
+
                 const points = profileChartInstance.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
                 const pipeHit = points.find(p => p.datasetIndex === 2);
                 if (pipeHit) {
                     isDraggingPoint = true;
                     activePointIndex = pipeHit.index;
-                    if (profileChartInstance.options.plugins.zoom) {
-                        profileChartInstance.options.plugins.zoom.pan.enabled = false;
-                    }
                 }
             };
 
@@ -1753,8 +1870,11 @@
                     const yPixel = e.clientY - rect.top;
                     const newHeight = parseFloat(profileChartInstance.scales.y.getValueForPixel(yPixel).toFixed(2));
                     
-                    updateVertexHeightAndSnap(activePointIndex, newHeight);
-                    profileChartInstance.update('none');
+                    const item = pipeDataGlobal[activePointIndex];
+                    if (item) {
+                        updateVertexHeightDirect(item.pipeIndex, item.vertexIndex, newHeight);
+                        profileChartInstance.update('none');
+                    }
                 }
             };
 
@@ -1762,9 +1882,6 @@
                 if (isDraggingPoint) {
                     isDraggingPoint = false;
                     activePointIndex = null;
-                    if (profileChartInstance && profileChartInstance.options.plugins.zoom) {
-                        profileChartInstance.options.plugins.zoom.pan.enabled = true;
-                    }
                     updateProfileChart();
                     if (currentlySelectedEntity) {
                         openInfoPanelForEntity(currentlySelectedEntity);
@@ -1773,7 +1890,7 @@
             };
 
             canvas.onclick = (e) => {
-                if (!profileChartInstance || isDraggingPoint) return;
+                if (!profileChartInstance || isDraggingPoint || e.shiftKey) return;
                 const points = profileChartInstance.getElementsAtEventForMode(e, 'index', { intersect: false }, false);
                 const pipeHit = points.find(p => p.datasetIndex === 2);
                 
@@ -1862,23 +1979,6 @@
             reader.readAsText(file);
         });
 
-        const drawPipeBtn = document.getElementById('drawPipeBtn');
-        function cleanupDrawPipe() {
-            drawnPipeCartesians = [];
-            drawPipeEntities.forEach(e => viewerInstance.entities.remove(e));
-            drawPipeEntities = [];
-            isDrawingPipe = false;
-            drawPipeBtn.classList.remove('active');
-            drawPipeBtn.textContent = '✏️ Draw New Pipe';
-        }
-
-        drawPipeBtn.addEventListener('click', () => {
-            isDrawingPipe = !isDrawingPipe;
-            drawPipeBtn.classList.toggle('active', isDrawingPipe);
-            drawPipeBtn.textContent = isDrawingPipe ? 'Right-Click to Finish Pipe...' : '✏️ Draw New Pipe';
-            if (!isDrawingPipe) cleanupDrawPipe();
-        });
-
         document.getElementById('toggleSolidEarthBtn').addEventListener('click', () => {
             isSolidEarth = !isSolidEarth;
             updateDisplayState();
@@ -1893,7 +1993,7 @@
         });
 
         document.getElementById('exportCsvBtn').addEventListener('click', () => {
-            let csvRows = ['PipeIndex,Criticality,RemainingLifeYears,LengthMeters,Diameter,AvgDepthMeters,CurrentOpPressure,YieldPressure,TransientScore,RemainingServiceLife,FailureLikelihood,SurveyLink'];
+            let csvRows = ['PipeIndex,Criticality,RemainingLifeYears,LengthMeters,Diameter,AvgDepthMeters,CurrentOpPressure,YieldPressure,TransientScore,RemainingServiceLife,FailureLikelihood,SubSpanName,Material,DateLaid,PipeAge,Resilience,MaxProperties,EstRepairTime,Deficit,OPAImpact,MaintainSupply,ThirdPartyDmg,RepairCost,MaxCostFail,RiskValue,SurveyLink'];
             createdPipeEntities.forEach((entity, pipeIdx) => {
                 const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
                 const crit = props.Criticality || props.criticality || props.crit || 'Green';
@@ -1919,9 +2019,23 @@
                 const ts = props.Transient_Score || '5';
                 const rsl = props.Remaining_Service_Life || rulYrs;
                 const lof = props.Likelihood_of_Failure || '5';
+                const subSpan = props.Sub_Span_Name || `Pipe ${pipeIdx+1} Bridge`;
+                const mat = props.Material || 'Steel (ST)';
+                const dl = props.Date_Laid || '1972';
+                const pa = props.Pipe_Age || '54 yrs';
+                const res = props.Resilience || '0 hrs';
+                const mp = props.Max_Properties || '50,775';
+                const ert = props.Est_Repair_Time || '148 hrs';
+                const def = props.Deficit || '-148';
+                const opai = props.OPA_Impact || '37.5';
+                const ctm = props.Cost_To_Maintain || '£1.2M';
+                const tpd = props.Third_Party_Damage || '£0';
+                const rc = props.Repair_Cost || '£81,300';
+                const mcf = props.Max_Cost_Fail || '£1.28M';
+                const rv = props.Risk_Value || '£642K';
                 const survey = props.survey || props.Survey || 'N/A';
 
-                csvRows.push(`Pipe ${pipeIdx},"${crit}",${rulYrs},${segLen.toFixed(1)},"${diameter}",${avgDepth},${op},${yp},${ts},${rsl},${lof},"${survey}"`);
+                csvRows.push(`Pipe ${pipeIdx},"${crit}",${rulYrs},${segLen.toFixed(1)},"${diameter}",${avgDepth},${op},${yp},${ts},${rsl},${lof},"${subSpan}","${mat}",${dl},"${pa}","${res}","${mp}","${ert}","${def}",${opai},"${ctm}","${tpd}","${rc}","${mcf}","${rv}","${survey}"`);
             });
 
             const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
@@ -2048,9 +2162,8 @@
             measurePoints = [];
         });
 
-        // NATIVE MOUSE CLICK LISTENER ON CANVAS FOR ROBUST CTRL+CLICK MULTI-SELECTION
         viewer.canvas.addEventListener('click', (e) => {
-            if (isDrawingPipe || isMeasuring) return;
+            if (isMeasuring) return;
 
             const rect = viewer.canvas.getBoundingClientRect();
             const mousePosition = new Cesium.Cartesian2(e.clientX - rect.left, e.clientY - rect.top);
@@ -2066,9 +2179,8 @@
 
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
-        // MOUSE MOVE HOVER HANDLER
         handler.setInputAction((movement) => {
-            if (isDrawingPipe || isMeasuring) return;
+            if (isMeasuring) return;
 
             const picked = viewer.scene.pick(movement.endPosition);
             if (Cesium.defined(picked) && picked.id && createdPipeEntities.includes(picked.id)) {
@@ -2078,186 +2190,9 @@
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-        // DRAGGING LOGIC FOR CARDS
-        let draggedCard = null;
-        let dragOffset = { x: 0, y: 0 };
-
-        document.addEventListener('mousedown', (e) => {
-            const card = e.target.closest('.floating-hud');
-            if (card) {
-                draggedCard = card;
-                const pIdx = parseInt(card.getAttribute('data-pipe-index'));
-                const rect = card.getBoundingClientRect();
-                dragOffset.x = e.clientX - rect.left;
-                dragOffset.y = e.clientY - rect.top;
-            }
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (draggedCard) {
-                const pIdx = parseInt(draggedCard.getAttribute('data-pipe-index'));
-                const containerRect = document.getElementById('popupContainer').getBoundingClientRect();
-                const newLeft = e.clientX - containerRect.left - dragOffset.x;
-                const newTop = e.clientY - containerRect.top - dragOffset.y;
-
-                cardCustomOffsets[pIdx] = { x: newLeft, y: newTop };
-                draggedCard.style.left = `${newLeft}px`;
-                draggedCard.style.top = `${newTop}px`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            draggedCard = null;
-        });
-
-        // PRE-RENDER LOOP: RENDER ALL MULTIPLE CARDS & COLLISION AVOIDANCE
-        viewer.scene.preRender.addEventListener(() => {
-            const popupContainer = document.getElementById('popupContainer');
-            const calloutSvg = document.getElementById('calloutSvg');
-
-            // Gather all pipe indices to display (selected + hovered)
-            const activeIndices = new Set(selectedPipeIndices);
-            if (hoveredEntity) {
-                const hIdx = createdPipeEntities.indexOf(hoveredEntity);
-                if (hIdx !== -1) activeIndices.add(hIdx);
-            }
-
-            // Sync DOM cards
-            const existingCards = popupContainer.querySelectorAll('.floating-hud');
-            existingCards.forEach(card => {
-                const pIdx = parseInt(card.getAttribute('data-pipe-index'));
-                if (!activeIndices.has(pIdx)) {
-                    card.remove();
-                }
-            });
-
-            let svgLinesHtml = '';
-            const placedBoxes = [];
-            const cardWidth = 240;
-            const cardHeight = 75;
-
-            // Sort active indices by screen Y position to keep collision resolution stable
-            const activeArr = Array.from(activeIndices).sort((a, b) => {
-                const posA = viewerInstance.scene.cartesianToCanvasCoordinates(createdPipeEntities[a].position.getValue(Cesium.JulianDate.now()));
-                const posB = viewerInstance.scene.cartesianToCanvasCoordinates(createdPipeEntities[b].position.getValue(Cesium.JulianDate.now()));
-                return (posA?.y || 0) - (posB?.y || 0);
-            });
-
-            activeArr.forEach(pIdx => {
-                const entity = createdPipeEntities[pIdx];
-                if (!entity) return;
-
-                const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
-                const orderVal = props.order ?? props.Order ?? props.ORDER ?? (pIdx + 1);
-
-                let card = popupContainer.querySelector(`.floating-hud[data-pipe-index="${pIdx}"]`);
-                if (!card) {
-                    card = document.createElement('div');
-                    card.className = 'floating-hud';
-                    card.setAttribute('data-pipe-index', pIdx);
-                    popupContainer.appendChild(card);
-                }
-
-                card.innerHTML = `
-                    <h4>Pipe ${orderVal} Operational Health</h4>
-                    <table class="health-table">
-                        <tr>
-                          <th>Op. Press</th>
-                          <th>Yield Press</th>
-                          <th>Transient</th>
-                          <th>RSL (yrs)</th>
-                          <th>Fail Risk</th>
-                        </tr>
-                        <tr>
-                          <td>${props.Current_Operating_Pressure || '17.6'}</td>
-                          <td>${props.Yield_Pressure || '19'}</td>
-                          <td>${props.Transient_Score || '5'}</td>
-                          <td>${props.Remaining_Service_Life || entity.rulYears || '25'}</td>
-                          <td>${props.Likelihood_of_Failure || '5'}</td>
-                        </tr>
-                    </table>
-                `;
-
-                const worldPos = entity.position ? entity.position.getValue(Cesium.JulianDate.now()) : null;
-                if (worldPos) {
-                    const screenPos = viewerInstance.scene.cartesianToCanvasCoordinates(worldPos);
-                    if (screenPos) {
-                        let leftPx, topPx;
-                        
-                        if (cardCustomOffsets[pIdx]) {
-                            leftPx = cardCustomOffsets[pIdx].x;
-                            topPx = cardCustomOffsets[pIdx].y;
-                        } else {
-                            // Preferred initial position
-                            leftPx = screenPos.x + 40;
-                            topPx = screenPos.y - 90;
-
-                            // Collision avoidance check against already placed card boxes
-                            let collision = true;
-                            let safety = 0;
-                            while (collision && safety < 10) {
-                                collision = false;
-                                for (const box of placedBoxes) {
-                                    if (!(leftPx + cardWidth < box.left || leftPx > box.left + box.width ||
-                                          topPx + cardHeight < box.top || topPx > box.top + box.height)) {
-                                        topPx = box.top + box.height + 10;
-                                        collision = true;
-                                        break;
-                                    }
-                                }
-                                safety++;
-                            }
-                        }
-
-                        placedBoxes.push({ left: leftPx, top: topPx, width: cardWidth, height: cardHeight });
-
-                        card.style.left = `${leftPx}px`;
-                        card.style.top = `${topPx}px`;
-                        card.style.display = 'block';
-
-                        svgLinesHtml += `<line x1="${screenPos.x}" y1="${screenPos.y}" x2="${leftPx}" y2="${topPx + cardHeight}" stroke="#007bff" stroke-width="3" stroke-linecap="round" filter="drop-shadow(0 0 4px rgba(0,123,255,0.5))" />`;
-                        svgLinesHtml += `<circle cx="${screenPos.x}" cy="${screenPos.y}" r="4" fill="#ffc107" stroke="#000" stroke-width="1.5" />`;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            calloutSvg.innerHTML = svgLinesHtml;
-        });
-
         handler.setInputAction((click) => {
-            if (isDrawingPipe) {
-                const pickedPos = viewerInstance.scene.pickPosition(click.position);
-                if (Cesium.defined(pickedPos)) {
-                    drawnPipeCartesians.push(pickedPos);
-                    const ptEntity = viewerInstance.entities.add({
-                        position: pickedPos,
-                        point: { pixelSize: 8, color: Cesium.Color.CYAN, disableDepthTestDistance: Number.POSITIVE_INFINITY }
-                    });
-                    drawPipeEntities.push(ptEntity);
-
-                    if (drawnPipeCartesians.length > 1) {
-                        const p1 = drawnPipeCartesians[drawnPipeCartesians.length - 2];
-                        const p2 = drawnPipeCartesians[drawnPipeCartesians.length - 1];
-                        const lineEntity = viewerInstance.entities.add({
-                            polyline: {
-                                positions: [p1, p2],
-                                width: 3,
-                                material: Cesium.Color.CYAN,
-                                depthFailMaterial: Cesium.Color.CYAN
-                            }
-                        });
-                        drawPipeEntities.push(lineEntity);
-                    }
-                }
-                return;
-            }
-
             if (isMeasuring) {
-                const pickedPos = viewer.scene.pickPosition(click.position);
+                const pickedPos = getCesiumWorldPosition(click.position, viewer);
                 if (Cesium.defined(pickedPos)) {
                     measurePoints.push(pickedPos);
 
@@ -2297,34 +2232,223 @@
             }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-        handler.setInputAction((click) => {
-            if (isDrawingPipe && drawnPipeCartesians.length >= 2) {
-                let diamInput = prompt("Pipe Drawn Successfully.\n\nPlease enter the new Pipe Diameter in meters:", "0.8");
-                if (diamInput === null) {
-                    cleanupDrawPipe();
-                    return; 
+        let draggedCard = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        document.addEventListener('mousedown', (e) => {
+            const toggleBtn = e.target.closest('.hud-toggle-btn');
+            if (toggleBtn) {
+                const card = toggleBtn.closest('.floating-hud');
+                if (card) {
+                    const pIdx = parseInt(card.getAttribute('data-pipe-index'));
+                    const currentExpanded = hudExpandedState.get(pIdx) || false;
+                    hudExpandedState.set(pIdx, !currentExpanded);
                 }
-                
-                let diamFloat = parseFloat(diamInput);
-                if (isNaN(diamFloat) || diamFloat <= 0) diamFloat = 0.8;
-
-                const newCartos = drawnPipeCartesians.map(c => Cesium.Cartographic.fromCartesian(c));
-                const newProps = {
-                    Order: createdPipeEntities.length + 1,
-                    Criticality: 'Green',
-                    Diameter: `${diamFloat}m`,
-                    survey: 'N/A'
-                };
-
-                addPipeToSystem(newCartos, newProps);
-                buildSpatialNodeRegistry();
-                updateProfileChart();
-
-                cleanupDrawPipe();
-            } else if (isDrawingPipe) {
-                cleanupDrawPipe();
+                return;
             }
-        }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+
+            const card = e.target.closest('.floating-hud');
+            if (card) {
+                draggedCard = card;
+                const rect = card.getBoundingClientRect();
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (draggedCard) {
+                const pIdx = parseInt(draggedCard.getAttribute('data-pipe-index'));
+                const containerRect = document.getElementById('popupContainer').getBoundingClientRect();
+                const newLeft = e.clientX - containerRect.left - dragOffset.x;
+                const newTop = e.clientY - containerRect.top - dragOffset.y;
+
+                cardCustomOffsets[pIdx] = { x: newLeft, y: newTop };
+                draggedCard.style.left = `${newLeft}px`;
+                draggedCard.style.top = `${newTop}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            draggedCard = null;
+        });
+
+        viewer.scene.preRender.addEventListener(() => {
+            const popupContainer = document.getElementById('popupContainer');
+            const calloutSvg = document.getElementById('calloutSvg');
+
+            const activeIndices = new Set(selectedPipeIndices);
+            if (hoveredEntity) {
+                const hIdx = createdPipeEntities.indexOf(hoveredEntity);
+                if (hIdx !== -1) activeIndices.add(hIdx);
+            }
+
+            const existingCards = popupContainer.querySelectorAll('.floating-hud');
+            existingCards.forEach(card => {
+                const pIdx = parseInt(card.getAttribute('data-pipe-index'));
+                if (!activeIndices.has(pIdx)) {
+                    card.remove();
+                }
+            });
+
+            let svgLinesHtml = '';
+            const placedBoxes = [];
+            const cardWidth = 280;
+
+            const activeArr = Array.from(activeIndices).sort((a, b) => {
+                const posA = viewerInstance.scene.cartesianToCanvasCoordinates(createdPipeEntities[a].position.getValue(Cesium.JulianDate.now()));
+                const posB = viewerInstance.scene.cartesianToCanvasCoordinates(createdPipeEntities[b].position.getValue(Cesium.JulianDate.now()));
+                return (posA?.y || 0) - (posB?.y || 0);
+            });
+
+            activeArr.forEach(pIdx => {
+                const entity = createdPipeEntities[pIdx];
+                if (!entity) return;
+
+                const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
+                const orderVal = props.order ?? props.Order ?? props.ORDER ?? (pIdx + 1);
+                const isExpanded = hudExpandedState.get(pIdx) || false;
+
+                let card = popupContainer.querySelector(`.floating-hud[data-pipe-index="${pIdx}"]`);
+                if (!card) {
+                    card = document.createElement('div');
+                    card.className = 'floating-hud';
+                    card.setAttribute('data-pipe-index', pIdx);
+                    popupContainer.appendChild(card);
+                }
+
+                let expandedContentHtml = '';
+                if (isExpanded) {
+                    expandedContentHtml = `
+                        <div class="hud-section-title">Asset Attributes</div>
+                        <table class="health-table">
+                            <tr>
+                                <th>Sub-Span Name</th>
+                                <th>Material</th>
+                                <th>Diameter</th>
+                                <th>Date Laid</th>
+                                <th>Pipe Age</th>
+                            </tr>
+                            <tr>
+                                <td>${props.Sub_Span_Name || `Pipe ${orderVal} Bridge`}</td>
+                                <td>${props.Material || 'Steel (ST)'}</td>
+                                <td>${props.Diameter || '36"'}</td>
+                                <td>${props.Date_Laid || '1972'}</td>
+                                <td>${props.Pipe_Age || '54 yrs'}</td>
+                            </tr>
+                        </table>
+
+                        <div class="hud-section-title">Criticality</div>
+                        <table class="health-table">
+                            <tr>
+                                <th>Resilience</th>
+                                <th>Max Prop</th>
+                                <th>Est. Repair</th>
+                                <th>Deficit</th>
+                                <th>OPA Impact</th>
+                            </tr>
+                            <tr>
+                                <td>${props.Resilience || '0 hrs'}</td>
+                                <td>${props.Max_Properties || '50,775'}</td>
+                                <td>${props.Est_Repair_Time || '148 hrs'}</td>
+                                <td>${props.Deficit || '-148'}</td>
+                                <td>${props.OPA_Impact || '37.5'}</td>
+                            </tr>
+                        </table>
+
+                        <div class="hud-section-title">Econometrics</div>
+                        <table class="health-table">
+                            <tr>
+                                <th>Maintain Supply</th>
+                                <th>3rd Party Dmg</th>
+                                <th>Repair Cost</th>
+                                <th>Max Cost Fail</th>
+                                <th>Risk Value</th>
+                            </tr>
+                            <tr>
+                                <td>${props.Cost_To_Maintain || '£1.2M'}</td>
+                                <td>${props.Third_Party_Damage || '£0'}</td>
+                                <td>${props.Repair_Cost || '£81,300'}</td>
+                                <td>${props.Max_Cost_Fail || '£1.28M'}</td>
+                                <td>${props.Risk_Value || '£642K'}</td>
+                            </tr>
+                        </table>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <h4>
+                        <span>Pipe ${orderVal} Operational Health</span>
+                        <button class="hud-toggle-btn" title="Expand / Collapse">${isExpanded ? '▲' : '▼'}</button>
+                    </h4>
+                    <table class="health-table">
+                        <tr>
+                          <th>Op. Press</th>
+                          <th>Yield Press</th>
+                          <th>Transient</th>
+                          <th>RSL (yrs)</th>
+                          <th>Fail Risk</th>
+                        </tr>
+                        <tr>
+                          <td>${getConditionBadge(props.Current_Operating_Pressure || '17.6', 'pressure')}</td>
+                          <td>${getConditionBadge(props.Yield_Pressure || '19', 'pressure')}</td>
+                          <td>${getConditionBadge(props.Transient_Score || '5', 'transient')}</td>
+                          <td>${getConditionBadge(props.Remaining_Service_Life || entity.rulYears || '25', 'rul')}</td>
+                          <td>${getConditionBadge(props.Likelihood_of_Failure || '5', 'risk')}</td>
+                        </tr>
+                    </table>
+                    ${expandedContentHtml}
+                `;
+
+                const cardHeight = card.offsetHeight || (isExpanded ? 240 : 85);
+
+                const worldPos = entity.position ? entity.position.getValue(Cesium.JulianDate.now()) : null;
+                if (worldPos) {
+                    const screenPos = viewerInstance.scene.cartesianToCanvasCoordinates(worldPos);
+                    if (screenPos) {
+                        let leftPx, topPx;
+                        
+                        if (cardCustomOffsets[pIdx]) {
+                            leftPx = cardCustomOffsets[pIdx].x;
+                            topPx = cardCustomOffsets[pIdx].y;
+                        } else {
+                            leftPx = screenPos.x + 40;
+                            topPx = screenPos.y - 90;
+
+                            let collision = true;
+                            let safety = 0;
+                            while (collision && safety < 10) {
+                                collision = false;
+                                for (const box of placedBoxes) {
+                                    if (!(leftPx + cardWidth < box.left || leftPx > box.left + box.width ||
+                                          topPx + cardHeight < box.top || topPx > box.top + box.height)) {
+                                        topPx = box.top + box.height + 10;
+                                        collision = true;
+                                        break;
+                                    }
+                                }
+                                safety++;
+                            }
+                        }
+
+                        placedBoxes.push({ left: leftPx, top: topPx, width: cardWidth, height: cardHeight });
+
+                        card.style.left = `${leftPx}px`;
+                        card.style.top = `${topPx}px`;
+                        card.style.display = 'block';
+
+                        svgLinesHtml += `<line x1="${screenPos.x}" y1="${screenPos.y}" x2="${leftPx}" y2="${topPx + (cardHeight/2)}" stroke="#007bff" stroke-width="3" stroke-linecap="round" filter="drop-shadow(0 0 4px rgba(0,123,255,0.5))" />`;
+                        svgLinesHtml += `<circle cx="${screenPos.x}" cy="${screenPos.y}" r="4" fill="#ffc107" stroke="#000" stroke-width="1.5" />`;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            calloutSvg.innerHTML = svgLinesHtml;
+        });
 
       } catch (error) {
         console.error('Cesium Execution Error:', error);
