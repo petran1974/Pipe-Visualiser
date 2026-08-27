@@ -2011,15 +2011,26 @@
                 btn.textContent = 'Loading Mesh...';
                 try {
                     photogrammetryTileset = await Cesium.Cesium3DTileset.fromUrl('./tileset.json');
+                    
+                    // Lift mesh up by 3 meters to prevent z-fighting / blending into the ground
+                    const cartographic = Cesium.Cartographic.fromCartesian(photogrammetryTileset.boundingSphere.center);
+                    const surface = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, cartographic.height);
+                    const offset = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, cartographic.height + 3.0);
+                    const translation = Cesium.Cartesian3.subtract(offset, surface, new Cesium.Cartesian3());
+                    photogrammetryTileset.modelMatrix = Cesium.Matrix4.fromTranslation(translation);
+
                     viewerInstance.scene.primitives.add(photogrammetryTileset);
                     isPhotogrammetryVisible = true;
                     viewerInstance.flyTo(photogrammetryTileset);
+                    btn.textContent = 'Hide Photogrammetry Mesh';
                 } catch (err) {
                     alert('Error loading tileset.json: ' + err.message);
+                    btn.textContent = '📷 Load Photogrammetry Mesh';
                 }
             } else {
                 isPhotogrammetryVisible = !isPhotogrammetryVisible;
                 photogrammetryTileset.show = isPhotogrammetryVisible;
+                btn.textContent = isPhotogrammetryVisible ? 'Hide Photogrammetry Mesh' : 'Show Photogrammetry Mesh';
             }
             syncUIControls();
         });
