@@ -70,7 +70,6 @@
       width: 280px;
       box-sizing: border-box;
       user-select: none;
-      transition: top 0.15s ease-out, left 0.15s ease-out;
     }
     .floating-hud:active { cursor: grabbing; }
     .floating-hud h4 {
@@ -476,7 +475,7 @@
       background: #ffffff;
       border: 2px solid #007bff;
       border-radius: 8px;
-      z-index: 2000;
+      z-index: 99999;
       box-shadow: 0 10px 30px rgba(0,0,0,0.25);
       flex-direction: column;
       overflow: hidden;
@@ -547,7 +546,6 @@
       <button id="toggleXrayBtn" class="btn-tool">Enable Terrain Hillshade Mode</button>
       <button id="toggleBaseMapBtn" class="btn-tool btn-secondary">Hide Base Satellite Map</button>
       <button id="toggleTiffBtn" class="btn-tool btn-secondary">Hide GeoTIFF (5118488)</button>
-      <button id="togglePhotogrammetryBtn" class="btn-tool btn-green">📷 Load Photogrammetry Mesh</button>
       <div class="slider-container">
         <label for="opacitySlider">Point Cloud Overlay Opacity:</label>
         <input type="range" id="opacitySlider" min="0.0" max="1.0" step="0.01" value="1.0" style="width: 100%;">
@@ -561,6 +559,11 @@
         <label for="clipSlider">Slice Position:</label>
         <input type="range" id="clipSlider" min="-100" max="100" step="0.1" value="0" disabled style="width: 100%;">
       </div>
+    </div>
+
+    <div class="panel-section">
+      <h4>Selection & Control</h4>
+      <button id="globalDeselectBtn" class="btn-tool btn-secondary">✕ Deselect All Pipes</button>
     </div>
 
     <div class="panel-section">
@@ -662,19 +665,17 @@
     </div>
   </div>
 
-  <!-- In-Site Embedded PDF Viewer Modal -->
-  <div id="pdfModal">
-    <div id="pdfModalHeader">
-      <span id="pdfModalTitle">📄 Embedded Survey & Inspection PDF Viewer</span>
+  <!-- In-Site Embedded Image Viewer Modal (Draggable, Resizable, Exportable) -->
+  <div id="imageModal" style="display:none; position:fixed; top:10%; left:15%; width:70%; height:75%; min-width:300px; min-height:200px; background:#ffffff; border:2px solid #007bff; border-radius:8px; z-index:99999; box-shadow:0 10px 50px rgba(0,0,0,0.5); flex-direction:column; overflow:hidden; resize:both;">
+    <div id="imageModalHeader" style="padding:8px 15px; background:#f8f9fa; border-bottom:1px solid #dee2e6; display:flex; justify-content:space-between; align-items:center; cursor:move;">
+      <span id="modalImageTitle" style="color:#007bff; font-weight:bold; font-size:13px; pointer-events:none;">🖼️ Image Viewer</span>
       <div>
-        <button class="pdf-ctrl-btn" onclick="zoomPdf(0.15)">🔍 Zoom In</button>
-        <button class="pdf-ctrl-btn" onclick="zoomPdf(-0.15)">🔍 Zoom Out</button>
-        <button class="pdf-ctrl-btn" onclick="resetPdfZoom()">↺ 100%</button>
-        <button class="pdf-ctrl-btn pdf-ctrl-close" onclick="closePdfModal()">✕ Close</button>
+        <button class="pdf-ctrl-btn" style="background:#28a745; color:#fff; border-color:#218838;" onclick="window.exportImage()">💾 Export</button>
+        <button class="pdf-ctrl-btn pdf-ctrl-close" onclick="window.closeImageModal()">✕ Close</button>
       </div>
     </div>
-    <div id="pdfFrameContainer">
-      <iframe id="pdfIframe" src=""></iframe>
+    <div style="flex:1; width:100%; height:100%; overflow:auto; background:#e9ecef; display:flex; justify-content:center; align-items:center;">
+      <img id="modalImageElement" src="" style="max-width:100%; max-height:100%; object-fit:contain;" alt="Export Image">
     </div>
   </div>
 
@@ -692,14 +693,13 @@
     let terrainProviderInstance = null;
     let tiffLayer = null;
     let pointCloudTileset = null;
-    let photogrammetryTileset = null;
-    let isPhotogrammetryVisible = false;
     let NORMAL_STYLE = null;
     let labelFlashInterval = null;
     let chartFlashState = false; 
     let pdfScaleLevel = 1.0;
     let pipeCorridorBoundingSphere = null;
     let hoveredEntity = null;
+    let isPipeControlUnlocked = false;
 
     const cardCustomOffsets = {};
     const hudExpandedState = new Map();
@@ -730,7 +730,8 @@
     }
 
     function getConditionBadge(value, type) {
-        let v = parseFloat(value);
+        let cleanVal = String(value).replace(/[^0-9.-]+/g,"");
+        let v = parseFloat(cleanVal);
         if (isNaN(v) && typeof value === 'string') {
             const low = value.toLowerCase();
             if (low.includes('red') || low.includes('high') || low === '3') return `<span class="badge-crit badge-red">${value}</span>`;
@@ -742,17 +743,96 @@
         if (type === 'rul') {
             if (v < 5) badgeClass = 'badge-red';
             else if (v < 15) badgeClass = 'badge-amber';
-            return `<span class="badge-crit ${badgeClass}">${value} Yrs</span>`;
+            return `<span class="badge-crit ${badgeClass}">${value}</span>`;
         } else if (type === 'transient' || type === 'risk') {
             if (v >= 7) badgeClass = 'badge-red';
             else if (v >= 4) badgeClass = 'badge-amber';
         } else if (type === 'pressure') {
             if (v >= 18.5) badgeClass = 'badge-red';
             else if (v >= 16) badgeClass = 'badge-amber';
+        } else if (type === 'opa') {
+            if (v >= 35) badgeClass = 'badge-red';
+            else if (v >= 25) badgeClass = 'badge-amber';
+        } else if (type === 'deficit') {
+            if (v <= -120) badgeClass = 'badge-red';
+            else if (v <= -80) badgeClass = 'badge-amber';
+        } else if (type === 'repair') {
+            if (v >= 120) badgeClass = 'badge-red';
+            else if (v >= 80) badgeClass = 'badge-amber';
+        } else if (type === 'resilience') {
+            if (v === 0) badgeClass = 'badge-red';
         }
 
         return `<span class="badge-crit ${badgeClass}">${value}</span>`;
     }
+
+    window.openImageViewer = function(url, titleText = 'Image Viewer') {
+      console.log("Opening image modal for:", url);
+      const imgElement = document.getElementById('modalImageElement');
+      imgElement.src = url;
+      const titleSpan = document.getElementById('modalImageTitle');
+      if(titleSpan) titleSpan.textContent = `🖼️ ${titleText}`;
+      document.getElementById('imageModal').style.display = 'flex';
+    }
+
+    window.closeImageModal = function() {
+      document.getElementById('imageModal').style.display = 'none';
+      document.getElementById('modalImageElement').src = '';
+    }
+
+    window.exportImage = function() {
+      const imgElement = document.getElementById('modalImageElement');
+      const url = imgElement.src;
+      if (!url) return;
+      const filename = url.split('/').pop() || 'Exported_Image.png';
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    const imageModal = document.getElementById('imageModal');
+    const imageModalHeader = document.getElementById('imageModalHeader');
+    let isDraggingImageModal = false;
+    let imgDragOffsetX = 0;
+    let imgDragOffsetY = 0;
+
+    imageModalHeader.addEventListener('mousedown', (e) => {
+        if (e.target.tagName.toLowerCase() === 'button') return;
+        
+        isDraggingImageModal = true;
+        const rect = imageModal.getBoundingClientRect();
+        imgDragOffsetX = e.clientX - rect.left;
+        imgDragOffsetY = e.clientY - rect.top;
+        
+        document.body.style.cursor = 'move';
+        document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isDraggingImageModal) {
+            let newX = e.clientX - imgDragOffsetX;
+            let newY = e.clientY - imgDragOffsetY;
+            
+            newY = Math.max(0, Math.min(newY, window.innerHeight - 40));
+            newX = Math.max(-imageModal.offsetWidth + 50, Math.min(newX, window.innerWidth - 50));
+
+            imageModal.style.left = `${newX}px`;
+            imageModal.style.top = `${newY}px`;
+            imageModal.style.right = 'auto';
+            imageModal.style.bottom = 'auto';
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDraggingImageModal) {
+            isDraggingImageModal = false;
+            document.body.style.cursor = 'default';
+            document.body.style.userSelect = 'auto';
+        }
+    });
 
     function openPdfViewer(url) {
       let embedUrl = url;
@@ -863,6 +943,7 @@
     function deselectAllPipes() {
       selectedPipeIndices.clear();
       currentlySelectedEntity = null;
+      isPipeControlUnlocked = false;
 
       if (labelFlashInterval) {
         clearInterval(labelFlashInterval);
@@ -1006,10 +1087,6 @@
         });
       }
 
-      if (photogrammetryTileset) {
-        photogrammetryTileset.show = isPhotogrammetryVisible;
-      }
-
       syncUIControls();
     }
 
@@ -1041,32 +1118,10 @@
         tiffBtn.classList.toggle('active', isTiffHidden);
       }
 
-      const photoBtn = document.getElementById('togglePhotogrammetryBtn');
-      if (photoBtn) {
-        photoBtn.textContent = isPhotogrammetryVisible ? 'Hide Photogrammetry Mesh' : '📷 Load Photogrammetry Mesh';
-        photoBtn.classList.toggle('active', isPhotogrammetryVisible);
-      }
-
       const opacitySlider = document.getElementById('opacitySlider');
       if (opacitySlider) {
         opacitySlider.value = pointCloudAlpha;
       }
-    }
-
-    function captureCurrentView() {
-      if (!viewerInstance) return;
-      const cam = viewerInstance.camera;
-      const carto = Cesium.Cartographic.fromCartesian(cam.position);
-      const viewData = {
-        longitude: carto.longitude,
-        latitude: carto.latitude,
-        height: carto.height,
-        heading: cam.heading,
-        pitch: cam.pitch,
-        roll: cam.roll
-      };
-      localStorage.setItem('user_saved_predefined_view', JSON.stringify(viewData));
-      alert('📷 Current camera view captured and saved successfully!');
     }
 
     function applyPredefinedView() {
@@ -1244,11 +1299,38 @@
         }
     }
 
+    window.verifyPipeControlPassword = function() {
+        const input = document.getElementById('pipeControlPasswordInput');
+        if (input && input.value === '1234') {
+            isPipeControlUnlocked = true;
+            if (currentlySelectedEntity) {
+                openInfoPanelForEntity(currentlySelectedEntity);
+            }
+        } else {
+            alert('Incorrect password. Please enter 1234.');
+            if (input) input.value = '';
+        }
+    };
+
     function openInfoPanelForEntity(entity) {
         currentlySelectedEntity = entity;
         const pipeIdx = createdPipeEntities.indexOf(entity);
         const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
         const orderVal = props.order ?? props.Order ?? props.ORDER ?? (pipeIdx + 1);
+
+        const infoPanel = document.getElementById('infoPanel');
+        const infoContent = document.getElementById('infoContent');
+
+        if (!isPipeControlUnlocked) {
+            infoContent.innerHTML = `
+                <h4 style="margin: 0 0 10px 0; color: #007bff; font-size: 13px;">🔒 Pipe ${orderVal} Control (Locked)</h4>
+                <p style="font-size:11px; color:#495057; margin-bottom:8px;">Enter password (1234) to unlock editing:</p>
+                <input type="password" id="pipeControlPasswordInput" class="vertex-input" style="width:100%; margin-bottom:8px; text-align:left;" placeholder="Password...">
+                <button class="btn-tool" onclick="window.verifyPipeControlPassword()">Unlock Controls</button>
+            `;
+            infoPanel.style.display = 'block';
+            return;
+        }
 
         let tableHtml = `<h4 style="margin: 0 0 10px 0; color: #007bff; font-size: 13px;">Pipe ${orderVal} Control Panel</h4>`;
 
@@ -1262,7 +1344,7 @@
                     <div class="vertex-row">
                         <span>V${idx + 1}:</span>
                         <input type="number" step="0.2" class="vertex-input" data-pipe-idx="${pipeIdx}" data-vindex="${idx}" value="${hVal}">
-                        <button class="btn-del-vertex" onclick="deleteVertexFromPipe(${pipeIdx}, ${idx})">Delete</button>
+                        <button class="btn-del-vertex" onclick="window.deleteVertexFromPipe(${pipeIdx}, ${idx})">Delete</button>
                     </div>`;
             });
             tableHtml += `</div>`;
@@ -1270,11 +1352,9 @@
 
         tableHtml += `
             <div style="margin-top: 15px; border-top: 1px dashed #dc3545; padding-top: 12px;">
-                <button class="btn-tool" style="background:#dc3545;" onclick="deleteSelectedPipeSection()">🗑️ Delete Full Pipe Section</button>
+                <button class="btn-tool" style="background:#dc3545;" onclick="window.deleteSelectedPipeSection()">🗑️ Delete Full Pipe Section</button>
             </div>`;
 
-        const infoPanel = document.getElementById('infoPanel');
-        const infoContent = document.getElementById('infoContent');
         infoContent.innerHTML = tableHtml;
         infoPanel.style.display = 'block';
 
@@ -1451,6 +1531,7 @@
             createdPipeEntities.forEach((entity, pipeIdx) => {
                 const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
                 const orderVal = props.order ?? props.Order ?? props.ORDER ?? (pipeIdx + 1);
+                const orderText = String(orderVal);
                 
                 const crit = String(props.Criticality || props.criticality || props.CRITICALITY || props.crit || 'Green').trim();
                 const rulYrs = entity.rulYears || 25;
@@ -1492,6 +1573,28 @@
                 const maxCostFail = props.Max_Cost_Fail || '£1.28M';
                 const riskValue = props.Risk_Value || '£642K';
 
+                // Fully conditionally coloured badges across all table metric cells + Pipe 11 camera icons pointing to Pop Ups/ folder
+                let opPressHtml = getConditionBadge(opPress, 'pressure');
+                let yieldPressHtml = getConditionBadge(yieldPress, 'pressure');
+                let transientHtml = getConditionBadge(transient, 'transient');
+                let failRiskHtml = getConditionBadge(failRisk, 'risk');
+                let rulHtml = getConditionBadge(rulYrs, 'rul');
+                let critHtml = getConditionBadge(crit, 'crit');
+
+                let resilienceHtml = getConditionBadge(resilience, 'resilience');
+                let estRepairHtml = getConditionBadge(estRepair, 'repair');
+                let deficitHtml = getConditionBadge(deficit, 'deficit');
+                let opaImpactHtml = getConditionBadge(opaImpact, 'opa');
+                let maxCostFailHtml = maxCostFail;
+
+                if (orderText === '11') {
+                    opPressHtml = `${opPressHtml} <span onclick="event.stopPropagation(); window.openImageViewer('Pop Ups/Pressure.png', 'Pressure (Pipe 11)')" style="cursor:pointer;" title="View Pressure chart">📷</span>`;
+                    estRepairHtml = `${estRepairHtml} <span onclick="event.stopPropagation(); window.openImageViewer('Pop Ups/Repair Time.png', 'Repair Time (Pipe 11)')" style="cursor:pointer;" title="View Repair Time chart">📷</span>`;
+                    deficitHtml = `${deficitHtml} <span onclick="event.stopPropagation(); window.openImageViewer('Pop Ups/Defecit.png', 'Deficit (Pipe 11)')" style="cursor:pointer;" title="View Deficit chart">📷</span>`;
+                    opaImpactHtml = `${opaImpactHtml} <span onclick="event.stopPropagation(); window.openImageViewer('Pop Ups/OPA Impact.png', 'OPA Impact (Pipe 11)')" style="cursor:pointer;" title="View OPA Impact chart">📷</span>`;
+                    maxCostFailHtml = `${maxCostFail} <span onclick="event.stopPropagation(); window.openImageViewer('Pop Ups/Total Cost of Failure.png', 'Total Cost of Failure (Pipe 11)')" style="cursor:pointer;" title="View Total Cost of Failure chart">📷</span>`;
+                }
+
                 const surveyUrl = props.survey ?? props.Survey ?? props.SURVEY ?? '';
                 let surveyBtn = '<span style="color:#adb5bd;">N/A</span>';
                 if (String(surveyUrl).startsWith('http')) {
@@ -1504,28 +1607,28 @@
 
                 row.innerHTML = `
                     <td><strong>Pipe ${orderVal}</strong></td>
-                    <td>${getConditionBadge(crit, 'crit')}</td>
-                    <td>${getConditionBadge(rulYrs, 'rul')}</td>
+                    <td>${critHtml}</td>
+                    <td>${rulHtml}</td>
                     <td>${segLen.toFixed(1)}m</td>
                     <td>${diameter}</td>
                     <td>${avgDepth}</td>
-                    <td>${getConditionBadge(opPress, 'pressure')}</td>
-                    <td>${getConditionBadge(yieldPress, 'pressure')}</td>
-                    <td>${getConditionBadge(transient, 'transient')}</td>
-                    <td>${getConditionBadge(failRisk, 'risk')}</td>
+                    <td>${opPressHtml}</td>
+                    <td>${yieldPressHtml}</td>
+                    <td>${transientHtml}</td>
+                    <td>${failRiskHtml}</td>
                     <td>${subSpan}</td>
                     <td>${material}</td>
                     <td>${dateLaid}</td>
                     <td>${pipeAge}</td>
-                    <td>${resilience}</td>
+                    <td>${resilienceHtml}</td>
                     <td>${maxProp}</td>
-                    <td>${estRepair}</td>
-                    <td>${deficit}</td>
-                    <td>${opaImpact}</td>
+                    <td>${estRepairHtml}</td>
+                    <td>${deficitHtml}</td>
+                    <td>${opaImpactHtml}</td>
                     <td>${maintainSupply}</td>
                     <td>${thirdPartyDmg}</td>
                     <td>${repairCost}</td>
-                    <td>${maxCostFail}</td>
+                    <td>${maxCostFailHtml}</td>
                     <td>${riskValue}</td>
                     <td>${surveyBtn}</td>
                 `;
@@ -2005,34 +2108,8 @@
             applyPredefinedView();
         });
 
-        document.getElementById('togglePhotogrammetryBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('togglePhotogrammetryBtn');
-            if (!photogrammetryTileset) {
-                btn.textContent = 'Loading Mesh...';
-                try {
-                    photogrammetryTileset = await Cesium.Cesium3DTileset.fromUrl('./tileset.json');
-                    
-                    // Lift mesh up by 3 meters to prevent z-fighting / blending into the ground
-                    const cartographic = Cesium.Cartographic.fromCartesian(photogrammetryTileset.boundingSphere.center);
-                    const surface = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, cartographic.height);
-                    const offset = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, cartographic.height + 3.0);
-                    const translation = Cesium.Cartesian3.subtract(offset, surface, new Cesium.Cartesian3());
-                    photogrammetryTileset.modelMatrix = Cesium.Matrix4.fromTranslation(translation);
-
-                    viewerInstance.scene.primitives.add(photogrammetryTileset);
-                    isPhotogrammetryVisible = true;
-                    viewerInstance.flyTo(photogrammetryTileset);
-                    btn.textContent = 'Hide Photogrammetry Mesh';
-                } catch (err) {
-                    alert('Error loading tileset.json: ' + err.message);
-                    btn.textContent = '📷 Load Photogrammetry Mesh';
-                }
-            } else {
-                isPhotogrammetryVisible = !isPhotogrammetryVisible;
-                photogrammetryTileset.show = isPhotogrammetryVisible;
-                btn.textContent = isPhotogrammetryVisible ? 'Hide Photogrammetry Mesh' : 'Show Photogrammetry Mesh';
-            }
-            syncUIControls();
+        document.getElementById('globalDeselectBtn').addEventListener('click', () => {
+            deselectAllPipes();
         });
 
         document.getElementById('exportCsvBtn').addEventListener('click', () => {
@@ -2215,8 +2292,6 @@
             if (Cesium.defined(picked) && picked.id && createdPipeEntities.includes(picked.id)) {
                 const pipeIdx = createdPipeEntities.indexOf(picked.id);
                 selectPipe(pipeIdx, e.ctrlKey || e.metaKey, '3d');
-            } else if (!e.ctrlKey && !e.metaKey) {
-                deselectAllPipes();
             }
         });
 
@@ -2316,6 +2391,9 @@
             draggedCard = null;
         });
 
+        // -------------------------------------------------------------
+        // HUD RENDER LOOP
+        // -------------------------------------------------------------
         viewer.scene.preRender.addEventListener(() => {
             const popupContainer = document.getElementById('popupContainer');
             const calloutSvg = document.getElementById('calloutSvg');
@@ -2350,102 +2428,141 @@
 
                 const props = entity.properties ? entity.properties.getValue(Cesium.JulianDate.now()) : {};
                 const orderVal = props.order ?? props.Order ?? props.ORDER ?? (pIdx + 1);
+                const orderText = String(orderVal);
                 const isExpanded = hudExpandedState.get(pIdx) || false;
 
                 let card = popupContainer.querySelector(`.floating-hud[data-pipe-index="${pIdx}"]`);
+                let isNewCard = false;
+                
                 if (!card) {
                     card = document.createElement('div');
                     card.className = 'floating-hud';
                     card.setAttribute('data-pipe-index', pIdx);
                     popupContainer.appendChild(card);
+                    isNewCard = true;
                 }
 
-                let expandedContentHtml = '';
-                if (isExpanded) {
-                    expandedContentHtml = `
-                        <div class="hud-section-title">Asset Attributes</div>
-                        <table class="health-table">
-                            <tr>
-                                <th>Sub-Span Name</th>
-                                <th>Material</th>
-                                <th>Diameter</th>
-                                <th>Date Laid</th>
-                                <th>Pipe Age</th>
-                            </tr>
-                            <tr>
-                                <td>${props.Sub_Span_Name || `Pipe ${orderVal} Bridge`}</td>
-                                <td>${props.Material || 'Steel (ST)'}</td>
-                                <td>${props.Diameter || '36"'}</td>
-                                <td>${props.Date_Laid || '1972'}</td>
-                                <td>${props.Pipe_Age || '54 yrs'}</td>
-                            </tr>
-                        </table>
+                const currentExpandedState = card.getAttribute('data-is-expanded');
 
-                        <div class="hud-section-title">Criticality</div>
-                        <table class="health-table">
-                            <tr>
-                                <th>Resilience</th>
-                                <th>Max Prop</th>
-                                <th>Est. Repair</th>
-                                <th>Deficit</th>
-                                <th>OPA Impact</th>
-                            </tr>
-                            <tr>
-                                <td>${props.Resilience || '0 hrs'}</td>
-                                <td>${props.Max_Properties || '50,775'}</td>
-                                <td>${props.Est_Repair_Time || '148 hrs'}</td>
-                                <td>${props.Deficit || '-148'}</td>
-                                <td>${props.OPA_Impact || '37.5'}</td>
-                            </tr>
-                        </table>
+                if (isNewCard || currentExpandedState !== String(isExpanded)) {
+                    let expandedContentHtml = '';
+                    if (isExpanded) {
+                        const estRepairVal = props.Est_Repair_Time || '148 hrs';
+                        const deficitVal = props.Deficit || '-148';
+                        const opaVal = props.OPA_Impact || '37.5';
+                        const maxCostFailVal = props.Max_Cost_Fail || '£1.28M';
+                        const resilienceVal = props.Resilience || '0 hrs';
 
-                        <div class="hud-section-title">Econometrics</div>
+                        let resilienceDisplay = getConditionBadge(resilienceVal, 'resilience');
+                        let estRepairDisplay = getConditionBadge(estRepairVal, 'repair');
+                        let deficitDisplay = getConditionBadge(deficitVal, 'deficit');
+                        let opaDisplay = getConditionBadge(opaVal, 'opa');
+                        let maxCostFailDisplay = maxCostFailVal;
+                        
+                        if (orderText === '11') {
+                            estRepairDisplay = `${estRepairDisplay} <span onclick="window.openImageViewer('Pop Ups/Repair Time.png', 'Repair Time (Pipe 11)')" style="cursor:pointer;" title="View Repair Time chart">📷</span>`;
+                            deficitDisplay = `${deficitDisplay} <span onclick="window.openImageViewer('Pop Ups/Defecit.png', 'Deficit (Pipe 11)')" style="cursor:pointer;" title="View Deficit chart">📷</span>`;
+                            opaDisplay = `${opaDisplay} <span onclick="window.openImageViewer('Pop Ups/OPA Impact.png', 'OPA Impact (Pipe 11)')" style="cursor:pointer;" title="View OPA Impact chart">📷</span>`;
+                            maxCostFailDisplay = `${maxCostFailVal} <span onclick="window.openImageViewer('Pop Ups/Total Cost of Failure.png', 'Total Cost of Failure (Pipe 11)')" style="cursor:pointer;" title="View Total Cost of Failure chart">📷</span>`;
+                        }
+
+                        expandedContentHtml = `
+                            <div class="hud-section-title">Asset Attributes</div>
+                            <table class="health-table">
+                                <tr>
+                                    <th>Sub-Span Name</th>
+                                    <th>Material</th>
+                                    <th>Diameter</th>
+                                    <th>Date Laid</th>
+                                    <th>Pipe Age</th>
+                                </tr>
+                                <tr>
+                                    <td>${props.Sub_Span_Name || `Pipe ${orderVal} Bridge`}</td>
+                                    <td>${props.Material || 'Steel (ST)'}</td>
+                                    <td>${props.Diameter || '36"'}</td>
+                                    <td>${props.Date_Laid || '1972'}</td>
+                                    <td>${props.Pipe_Age || '54 yrs'}</td>
+                                </tr>
+                            </table>
+
+                            <div class="hud-section-title">Criticality</div>
+                            <table class="health-table">
+                                <tr>
+                                    <th>Resilience</th>
+                                    <th>Max Prop</th>
+                                    <th>Est. Repair</th>
+                                    <th>Deficit</th>
+                                    <th>OPA Impact</th>
+                                </tr>
+                                <tr>
+                                    <td>${resilienceDisplay}</td>
+                                    <td>${props.Max_Properties || '50,775'}</td>
+                                    <td>${estRepairDisplay}</td>
+                                    <td>${deficitDisplay}</td>
+                                    <td>${opaDisplay}</td>
+                                </tr>
+                            </table>
+
+                            <div class="hud-section-title">Econometrics</div>
+                            <table class="health-table">
+                                <tr>
+                                    <th>Maintain Supply</th>
+                                    <th>3rd Party Dmg</th>
+                                    <th>Repair Cost</th>
+                                    <th>Max Cost Fail</th>
+                                    <th>Risk Value</th>
+                                </tr>
+                                <tr>
+                                    <td>${props.Cost_To_Maintain || '£1.2M'}</td>
+                                    <td>${props.Third_Party_Damage || '£0'}</td>
+                                    <td>${props.Repair_Cost || '£81,300'}</td>
+                                    <td>${maxCostFailDisplay}</td>
+                                    <td>${props.Risk_Value || '£642K'}</td>
+                                </tr>
+                            </table>
+                        `;
+                    }
+
+                    let opPressHud = getConditionBadge(props.Current_Operating_Pressure || '17.6', 'pressure');
+                    let yieldPressHud = getConditionBadge(props.Yield_Pressure || '19', 'pressure');
+                    let transientHud = getConditionBadge(props.Transient_Score || '5', 'transient');
+                    let rslHud = getConditionBadge(props.Remaining_Service_Life || entity.rulYears || '25', 'rul');
+                    let failRiskHud = getConditionBadge(props.Likelihood_of_Failure || '5', 'risk');
+
+                    if (orderText === '11') {
+                        opPressHud = `${opPressHud} <span onclick="window.openImageViewer('Pop Ups/Pressure.png', 'Pressure (Pipe 11)')" style="cursor:pointer;" title="View Pressure chart">📷</span>`;
+                    }
+
+                    card.innerHTML = `
+                        <h4>
+                            <span>Pipe ${orderVal} Operational Health</span>
+                            <button class="hud-toggle-btn" title="Expand / Collapse">${isExpanded ? '▲' : '▼'}</button>
+                        </h4>
                         <table class="health-table">
                             <tr>
-                                <th>Maintain Supply</th>
-                                <th>3rd Party Dmg</th>
-                                <th>Repair Cost</th>
-                                <th>Max Cost Fail</th>
-                                <th>Risk Value</th>
+                              <th>Op. Press</th>
+                              <th>Yield Press</th>
+                              <th>Transient</th>
+                              <th>RSL (yrs)</th>
+                              <th>Fail Risk</th>
                             </tr>
                             <tr>
-                                <td>${props.Cost_To_Maintain || '£1.2M'}</td>
-                                <td>${props.Third_Party_Damage || '£0'}</td>
-                                <td>${props.Repair_Cost || '£81,300'}</td>
-                                <td>${props.Max_Cost_Fail || '£1.28M'}</td>
-                                <td>${props.Risk_Value || '£642K'}</td>
+                              <td>${opPressHud}</td>
+                              <td>${yieldPressHud}</td>
+                              <td>${transientHud}</td>
+                              <td>${rslHud}</td>
+                              <td>${failRiskHud}</td>
                             </tr>
                         </table>
+                        ${expandedContentHtml}
                     `;
+                    
+                    card.setAttribute('data-is-expanded', String(isExpanded));
                 }
-
-                card.innerHTML = `
-                    <h4>
-                        <span>Pipe ${orderVal} Operational Health</span>
-                        <button class="hud-toggle-btn" title="Expand / Collapse">${isExpanded ? '▲' : '▼'}</button>
-                    </h4>
-                    <table class="health-table">
-                        <tr>
-                          <th>Op. Press</th>
-                          <th>Yield Press</th>
-                          <th>Transient</th>
-                          <th>RSL (yrs)</th>
-                          <th>Fail Risk</th>
-                        </tr>
-                        <tr>
-                          <td>${getConditionBadge(props.Current_Operating_Pressure || '17.6', 'pressure')}</td>
-                          <td>${getConditionBadge(props.Yield_Pressure || '19', 'pressure')}</td>
-                          <td>${getConditionBadge(props.Transient_Score || '5', 'transient')}</td>
-                          <td>${getConditionBadge(props.Remaining_Service_Life || entity.rulYears || '25', 'rul')}</td>
-                          <td>${getConditionBadge(props.Likelihood_of_Failure || '5', 'risk')}</td>
-                        </tr>
-                    </table>
-                    ${expandedContentHtml}
-                `;
 
                 const cardHeight = card.offsetHeight || (isExpanded ? 240 : 85);
-
                 const worldPos = entity.position ? entity.position.getValue(Cesium.JulianDate.now()) : null;
+                
                 if (worldPos) {
                     const screenPos = viewerInstance.scene.cartesianToCanvasCoordinates(worldPos);
                     if (screenPos) {
@@ -2480,7 +2597,10 @@
                         card.style.top = `${topPx}px`;
                         card.style.display = 'block';
 
-                        svgLinesHtml += `<line x1="${screenPos.x}" y1="${screenPos.y}" x2="${leftPx}" y2="${topPx + (cardHeight/2)}" stroke="#007bff" stroke-width="3" stroke-linecap="round" filter="drop-shadow(0 0 4px rgba(0,123,255,0.5))" />`;
+                        const cardCenterX = leftPx + (cardWidth / 2);
+                        const cardCenterY = topPx + (cardHeight / 2);
+
+                        svgLinesHtml += `<line x1="${screenPos.x}" y1="${screenPos.y}" x2="${cardCenterX}" y2="${cardCenterY}" stroke="#007bff" stroke-width="3" stroke-linecap="round" filter="drop-shadow(0 0 4px rgba(0,123,255,0.5))" />`;
                         svgLinesHtml += `<circle cx="${screenPos.x}" cy="${screenPos.y}" r="4" fill="#ffc107" stroke="#000" stroke-width="1.5" />`;
                     } else {
                         card.style.display = 'none';
